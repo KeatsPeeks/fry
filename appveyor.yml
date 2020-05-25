@@ -2,6 +2,8 @@ image:
   - Visual Studio 2019
   - Ubuntu
 
+version: '1.0.{build}'
+
 for:
   -
     matrix:
@@ -16,7 +18,7 @@ for:
 
           cd build
 
-          cmake c:\projects\source -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo
+          cmake c:\projects\source -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DBUILD_VERSION=$(appveyor_build_version)
 
           cmake --build . --config "RelWithDebInfo"
 
@@ -39,7 +41,7 @@ for:
 
           cd build
 
-          cmake /tmp/source -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo
+          cmake /tmp/source -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DBUILD_VERSION=$(appveyor_build_version)
 
           cmake --build . --config "RelWithDebInfo"
 

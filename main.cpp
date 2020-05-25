@@ -1,8 +1,12 @@
+
 #include <iostream>
 
+#include "main.h"
+
 int main() {
-    int i = 1;
-    i++;
-    i++;
-    return i;
+    std::cout << "Build " << BUILD_VERSION;
+    for (int i = 0; i < 1000000; i++) {
+        // no-op
+    }
+    return 0;
 }
