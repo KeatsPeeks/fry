@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(fry)
+set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON") # For Ninja to output the full compiler command line; keep at the top !
 
-set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON") # For Ninja to output the full compiler command line
+project(fry)
 
 #--------------------------------------------------------
 # Minimum C++ version required
@@ -44,7 +44,7 @@ elseif(MSVC) # last, because MSVC is defined in clang-cl
 else()
     message(AUTHOR_WARNING "No compiler warnings set for '${CMAKE_CXX_COMPILER_ID}' compiler.")
 endif()
-message("CMAKE_CXX_FLAGS = '${CMAKE_CXX_FLAGS}'")
+message(STATUS "CMAKE_CXX_FLAGS = '${CMAKE_CXX_FLAGS}'")
 
 #--------------------------------------------------------
 # Target
