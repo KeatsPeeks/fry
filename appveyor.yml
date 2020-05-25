@@ -1,0 +1,13 @@
+image:
+  - Visual Studio 2019
+clone_folder: source
+build_script:
+  - cmd: >-
+      mkdir build
+
+      cd build
+
+      cmake source -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo
+
+      cmake --build . --config "RelWithDebInfo"
+
