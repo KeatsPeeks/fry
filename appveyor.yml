@@ -20,6 +20,12 @@ for:
 
           cmake --build . --config "RelWithDebInfo"
 
+          del output\RelWithDebInfo\*.ilk
+
+    artifacts:
+      - path: build\output\RelWithDebInfo\*.*
+        name: windows_x64
+
   -
     matrix:
       only:
@@ -36,3 +42,8 @@ for:
           cmake /tmp/source -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo
 
           cmake --build . --config "RelWithDebInfo"
+
+
+    artifacts:
+      - path: build/output/*
+        name: linux_x64

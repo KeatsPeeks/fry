@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON")
 project(fry)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY output)
 
 set(CMAKE_CXX_STANDARD 20)
 
