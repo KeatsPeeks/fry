@@ -1,6 +1,11 @@
-image:
-  - Visual Studio 2019
-  - Ubuntu
+environment:
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      CXX: cl
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+      CXX: clang++
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+      CXX: g++
 
 version: '1.0.{build}'
 
@@ -8,7 +13,7 @@ for:
   -
     matrix:
       only:
-        - image: Visual Studio 2019
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
 
     clone_folder: c:\projects\source
 
@@ -31,7 +36,7 @@ for:
   -
     matrix:
       only:
-        - image: Ubuntu
+        - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
 
     clone_folder: /tmp/source
 
