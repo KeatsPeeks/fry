@@ -1,13 +1,34 @@
 environment:
   matrix:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      CXX: cl
+      APP_NAME: win
     - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
       CXX: clang++
+      APP_NAME: clang
     - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
       CXX: g++
+      APP_NAME: gcc
+    - APPVEYOR_BUILD_WORKER_IMAGE: macOS
+      APP_NAME: macos
 
 version: '1.0.{build}'
+
+clone_folder: /tmp/source
+
+build_script:
+  - sh: >-
+      mkdir build
+
+      cd build
+
+      cmake /tmp/source -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DCI=${CI} -DBUILD_VERSION=${appveyor_build_version}
+
+      cmake --build . --config "RelWithDebInfo"
+
+
+artifacts:
+  - path: build/output/*
+    name: $(APP_NAME)
 
 for:
   -
@@ -23,7 +44,7 @@ for:
 
           cd build
 
-          cmake c:\projects\source -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DCI=$(CI) -DBUILD_VERSION=$(appveyor_build_version)
+          cmake c:\projects\source -G "Visual Studio 16 2019" -DCI=$(CI) -DBUILD_VERSION=$(appveyor_build_version)
 
           cmake --build . --config "RelWithDebInfo"
 
@@ -32,25 +53,3 @@ for:
     artifacts:
       - path: build\output\RelWithDebInfo\*.*
         name: windows_x64
-
-  -
-    matrix:
-      only:
-        - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-
-    clone_folder: /tmp/source
-
-    build_script:
-      - sh: >-
-          mkdir build
-
-          cd build
-
-          cmake /tmp/source -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DCI=${CI} -DBUILD_VERSION=${appveyor_build_version}
-
-          cmake --build . --config "RelWithDebInfo"
-
-
-    artifacts:
-      - path: build/output/*
-        name: linux_x64
