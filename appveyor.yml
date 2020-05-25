@@ -1,13 +1,38 @@
 image:
   - Visual Studio 2019
-clone_folder: source
-build_script:
-  - cmd: >-
-      mkdir build
+  - Ubuntu
 
-      cd build
+for:
+  -
+    matrix:
+      only:
+        - image: Visual Studio 2019
 
-      cmake source -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo
+    clone_folder: c:\projects\source
 
-      cmake --build . --config "RelWithDebInfo"
+    build_script:
+      - cmd: >-
+          mkdir build
 
+          cd build
+
+          cmake c:\projects\source -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo
+
+          cmake --build . --config "RelWithDebInfo"
+
+  -
+    matrix:
+      only:
+        - image: Ubuntu
+
+    clone_folder: /tmp/source
+
+    build_script:
+      - sh: >-
+          mkdir build
+
+          cd build
+
+          cmake /tmp/source -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo
+
+          cmake --build . --config "RelWithDebInfo"
