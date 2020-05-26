@@ -21,7 +21,7 @@ endif()
 # Warnings
 #--------------------------------------------------------
 set(MSVC_WARNINGS "${MSVC_WARNINGS} /W4")
-set(CLANG_GCC_WARNINGS "${CLANG_GCC_WARNINGS} -Wall -Wextra -Wpedantic")
+set(CLANG_GCC_WARNINGS "${CLANG_GCC_WARNINGS} -Wall -Wextra -Wpedantic -Wno-c++98-compat")
 if(CI)
     # fail CI builds on warnings
     set(MSVC_WARNINGS "${MSVC_WARNINGS} /WX")
