@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
 
-set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON") # For Ninja to output the full compiler command line; keep at the top !
-
 project(fry)
 
 #--------------------------------------------------------
@@ -20,12 +18,19 @@ endif()
 #--------------------------------------------------------
 # Static analysis
 #--------------------------------------------------------
-if(ENABLE_CLANG_TIDY)
+if(ENABLE_STATIC_ANALYSIS)
     find_program(CLANGTIDY NAMES clang-tidy clang-tidy-10 clang-tidy-9 clang-tidy-8 clang-tidy-7 clang-tidy-6.0)
     if(CLANGTIDY)
-        set(CMAKE_CXX_CLANG_TIDY "${CLANGTIDY}")
+        set(CMAKE_CXX_CLANG_TIDY ${CLANGTIDY})
     else()
         message(FATAL_ERROR "clang-tidy not found")
+    endif()
+
+    find_program(CPPCHECK NAMES cppcheck)
+    if(CPPCHECK)
+        set(CMAKE_CXX_CPPCHECK ${CPPCHECK} --enable=all --inconclusive --inline-suppr --language=c++)
+    else()
+        message(FATAL_ERROR "cppcheck not found")
     endif()
 endif()
 
@@ -33,7 +38,7 @@ endif()
 # Warnings
 #--------------------------------------------------------
 set(MSVC_WARNINGS "${MSVC_WARNINGS} /W4")
-set(CLANG_GCC_WARNINGS "${CLANG_GCC_WARNINGS} -v -Wall -Wextra -Wpedantic -Wno-c++98-compat")
+set(CLANG_GCC_WARNINGS "${CLANG_GCC_WARNINGS} -Wall -Wextra -Wpedantic -Wno-c++98-compat")
 if(CI)
     # fail CI builds on warnings
     set(MSVC_WARNINGS "${MSVC_WARNINGS} /WX")

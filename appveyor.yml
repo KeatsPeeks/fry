@@ -5,7 +5,7 @@ environment:
       CXX: clang++
       CC: clang
       APP_NAME: clang
-      ENABLE_CLANG_TIDY: ON
+      ENABLE_STATIC_ANALYSIS: ON
     - job_name: Linux-GCC
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
       CXX: g++
@@ -28,7 +28,7 @@ build_script:
 
       cd build
 
-      cmake /tmp/source -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DCI=${CI} -DBUILD_VERSION=${appveyor_build_version} -DENABLE_CLANG_TIDY=${ENABLE_CLANG_TIDY}
+      cmake /tmp/source -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DCI=${CI} -DBUILD_VERSION=${appveyor_build_version} -DENABLE_STATIC_ANALYSIS=${ENABLE_STATIC_ANALYSIS}
 
       cmake --build . --config "RelWithDebInfo"
 
@@ -41,10 +41,10 @@ for:
   -
     matrix:
       only:
-        - job_name: Linux-Clang
+        - ENABLE_STATIC_ANALYSIS: ON
 
     install:
-      - sh: sudo apt-get install -y clang-tidy-10
+      - sh: sudo apt-get install -y clang-tidy-10 cppcheck
 
   -
     matrix:
