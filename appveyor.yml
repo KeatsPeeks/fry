@@ -1,14 +1,18 @@
 environment:
   matrix:
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    - job_name: Windows-MSVC
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       APP_NAME: win
-    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    - job_name: Linux-Clang
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
       CXX: clang++
       APP_NAME: clang
-    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    - job_name: Linux-GCC
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
       CXX: g++
       APP_NAME: gcc
-    - APPVEYOR_BUILD_WORKER_IMAGE: macOS
+    - job_name: MacOS-Clang
+      APPVEYOR_BUILD_WORKER_IMAGE: macOS
       APP_NAME: macos
 
 version: '1.0.{build}'
