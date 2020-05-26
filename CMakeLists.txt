@@ -11,17 +11,29 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #--------------------------------------------------------
-# Versionning provided by Appveyor
+# Versionning (build version is provided by Appveyor)
 #--------------------------------------------------------
 if(BUILD_VERSION)
     add_definitions(-DBUILD_VERSION="${BUILD_VERSION}")
 endif()
 
 #--------------------------------------------------------
+# Static analysis
+#--------------------------------------------------------
+if(ENABLE_CLANG_TIDY)
+    find_program(CLANGTIDY NAMES clang-tidy clang-tidy-10 clang-tidy-9 clang-tidy-8 clang-tidy-7 clang-tidy-6.0)
+    if(CLANGTIDY)
+        set(CMAKE_CXX_CLANG_TIDY "${CLANGTIDY}")
+    else()
+        message(FATAL_ERROR "clang-tidy not found")
+    endif()
+endif()
+
+#--------------------------------------------------------
 # Warnings
 #--------------------------------------------------------
 set(MSVC_WARNINGS "${MSVC_WARNINGS} /W4")
-set(CLANG_GCC_WARNINGS "${CLANG_GCC_WARNINGS} -Wall -Wextra -Wpedantic -Wno-c++98-compat")
+set(CLANG_GCC_WARNINGS "${CLANG_GCC_WARNINGS} -v -Wall -Wextra -Wpedantic -Wno-c++98-compat")
 if(CI)
     # fail CI builds on warnings
     set(MSVC_WARNINGS "${MSVC_WARNINGS} /WX")

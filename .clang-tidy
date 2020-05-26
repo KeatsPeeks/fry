@@ -1,2 +1,3 @@
 ---
 Checks: '*,-fuchsia-*,-modernize-use-trailing-return-type'
+WarningsAsErrors: '*'
