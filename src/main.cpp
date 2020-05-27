@@ -12,29 +12,28 @@ int main(int argc, char** argv) {
 
 static const int SCREEN_WIDTH = 640;
 static const int SCREEN_HEIGHT = 480;
-static const int DELAY = 1000;
+
 
 int mainImpl(int /*argc*/, char** /*argv*/) {
     std::cout << "Build " << BUILD_VERSION << '\n';
 
-
-    SDL_Window* window = nullptr;
-    SDL_Surface* screenSurface = nullptr;
-    if (SDL_Init(SDL_INIT_VIDEO ) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         return 2;
     }
-    window = SDL_CreateWindow(
+
+    std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> window{SDL_CreateWindow(
             "hello_sdl2",
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, // NOLINT
             SCREEN_WIDTH, SCREEN_HEIGHT,
             SDL_WINDOW_SHOWN
-    );
+    ), SDL_DestroyWindow};
+
     if (window == nullptr) {
         return 1;
     }
-    screenSurface = SDL_GetWindowSurface(window);
+    SDL_Surface* screenSurface = SDL_GetWindowSurface(window.get());
     SDL_FillRect(screenSurface, nullptr, SDL_MapRGB(screenSurface->format, 0, 0, 0));
-    SDL_UpdateWindowSurface(window);
+    SDL_UpdateWindowSurface(window.get());
     static SDL_Event event;
     while (true) {
         SDL_PollEvent(&event);
@@ -42,5 +41,7 @@ int mainImpl(int /*argc*/, char** /*argv*/) {
             break;
         }
     }
+    SDL_Quit();
+
     return 0;
 }
