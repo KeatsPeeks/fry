@@ -8,8 +8,8 @@ environment:
       ENABLE_STATIC_ANALYSIS: ON
     - job_name: Linux-GCC
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-      CXX: g++
-      CC: gcc
+      CXX: g++-10
+      CC: gcc-10
       APP_NAME: gcc
     - job_name: Windows-MSVC
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
@@ -41,10 +41,18 @@ for:
   -
     matrix:
       only:
-        - ENABLE_STATIC_ANALYSIS: ON
+        - job_name: Linux-Clang
 
     install:
       - sh: sudo apt-get install -y clang-tidy-10 cppcheck
+
+  -
+    matrix:
+      only:
+        - job_name: Linux-GCC
+
+    install:
+      - sh: sudo apt-get install -y g++-10 g++-9
 
   -
     matrix:
