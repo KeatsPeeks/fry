@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 
 int mainImpl(int argc, char** argv);
 
