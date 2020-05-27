@@ -19,7 +19,7 @@ environment:
       APP_NAME: macos
 
 version: '1.0.{build}'
-
+skip_tags: true
 clone_folder: /tmp/source
 
 cache:
@@ -85,3 +85,17 @@ for:
     artifacts:
       - path: build\output\RelWithDebInfo\*.*
         name: windows_x64
+
+deploy:
+  - provider: GitHub
+    auth_token:
+      secure:
+        jsPv246qH9Lwg0FuzMy7rlz/TU+1tFaHKVEgRn/aG22kJ7MoBTXyvQaPrOL3EnHV
+    tag: $(appveyor_build_version)
+    release: latest-$(APP_NAME)
+    artifact: /.*/
+    draft: false
+    prerelease: false
+    force_update: true
+    on:
+      branch: master
