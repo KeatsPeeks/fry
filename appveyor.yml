@@ -25,11 +25,11 @@ clone_folder: /tmp/source
 build_script:
   - sh: >-
       mkdir build
-
+      &&
       cd build
-
+      &&
       cmake /tmp/source -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DCI=${CI} -DBUILD_VERSION=${appveyor_build_version} -DENABLE_STATIC_ANALYSIS=${ENABLE_STATIC_ANALYSIS}
-
+      &&
       cmake --build . --config "RelWithDebInfo"
 
 
