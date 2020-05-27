@@ -1,16 +1,19 @@
 environment:
+  access_token:
+    secure:
+      jsPv246qH9Lwg0FuzMy7rlz/TU+1tFaHKVEgRn/aG22kJ7MoBTXyvQaPrOL3EnHV
   matrix:
     - job_name: Linux-Clang
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
       CXX: clang++
       CC: clang
-      APP_NAME: clang
+      APP_NAME: linux-clang
       ENABLE_STATIC_ANALYSIS: ON
     - job_name: Linux-GCC
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
       CXX: g++-10
       CC: gcc-10
-      APP_NAME: gcc
+      APP_NAME: linux-gcc
     - job_name: Windows-MSVC
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       APP_NAME: win
@@ -86,12 +89,18 @@ for:
       - path: build\output\RelWithDebInfo\*.*
         name: windows_x64
 
+after_build:
+  - git config --global credential.helper store
+  - ps: Add-Content -Path "$HOME/.git-credentials" -Value "https://$($env:access_token):x-oauth-basic@github.com`n" -NoNewline
+  - git config --global user.email "samuel.lacroix1@gmail.com"
+  - git config --global user.name "Samuel Lacroix"
+  - cmd: git push --delete origin latest-$(APP_NAME) & SET ERRORLEVEL=0
+  - sh: git push --delete origin latest-${APP_NAME} || true
+
 deploy:
   - provider: GitHub
-    auth_token:
-      secure:
-        jsPv246qH9Lwg0FuzMy7rlz/TU+1tFaHKVEgRn/aG22kJ7MoBTXyvQaPrOL3EnHV
-    tag: $(appveyor_build_version)
+    auth_token: $(access_token)
+    tag: latest-$(APP_NAME)
     release: latest-$(APP_NAME)
     artifact: /.*/
     draft: false
