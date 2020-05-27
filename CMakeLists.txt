@@ -87,13 +87,20 @@ set(APP_LINKER_LIBS SDL2::SDL2)
 # Outpout
 #--------------------------------------------------------
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY output)
-add_executable(${CMAKE_PROJECT_NAME} src/main.cpp src/main.h)
-
 if(MSVC)
-    # This warnings informs us that the linker cannot find debug info pour external librairies; we don't care
-    set(LINKER_FLAGS ${LINKER_FLAGS} -ignore:4099)
+    # WIN32: changes the subsytem from console to Windows to prevent extra console windows creation
+    set(WIN32_EXE "WIN32")
+
+    # LNK4099: informs us that the linker cannot find debug info pour external librairies; we don't care
+    # LNK4075: "ignoring '/INCREMENTAL' due to '/OPT:REF' specification"
+    # /OPT:Ref: always eliminates functions and data that are never referenced, even with debug info
+    # /ENTRY:mainCRTStartup: required for /subsystem:windows
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ignore:4099 -ignore:4075 /OPT:Ref /ENTRY:mainCRTStartup")
+
 endif()
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY output)
+add_executable(${CMAKE_PROJECT_NAME} ${WIN32_EXE} src/main.cpp src/main.h)
 
 # use the non-debug version of SDL2 in RelWithDebInfo and MinSizeRel build types
 set_target_properties(SDL2::SDL2 SDL2::SDL2main PROPERTIES
@@ -101,4 +108,4 @@ set_target_properties(SDL2::SDL2 SDL2::SDL2main PROPERTIES
     MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
 )
 
-target_link_libraries(${CMAKE_PROJECT_NAME} ${APP_LINKER_LIBS} ${LINKER_FLAGS})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${APP_LINKER_LIBS})
