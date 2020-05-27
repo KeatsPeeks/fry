@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
+set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON")
+
 #--------------------------------------------------------
 # Hunter package manager
 #--------------------------------------------------------
@@ -85,6 +87,7 @@ set(APP_LINKER_LIBS SDL2::SDL2)
 # Outpout
 #--------------------------------------------------------
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY output)
 add_executable(${CMAKE_PROJECT_NAME} src/main.cpp src/main.h)
 
 if(MSVC)
@@ -97,6 +100,5 @@ set_target_properties(SDL2::SDL2 SDL2::SDL2main PROPERTIES
     MAP_IMPORTED_CONFIG_MINSIZEREL Release
     MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
 )
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY output)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} ${APP_LINKER_LIBS} ${LINKER_FLAGS})

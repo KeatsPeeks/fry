@@ -22,6 +22,14 @@ version: '1.0.{build}'
 
 clone_folder: /tmp/source
 
+cache:
+  - /home/appveyor/.hunter/_Base/Cache/
+  - /home/appveyor/.hunter/_Base/Cellar/
+  - C:/.hunter/_Base/Cache/
+  - C:/.hunter/_Base/Cellar/
+  - /Users/appveyor/.hunter/_Base/Cache/
+  - /Users/appveyor/.hunter/_Base/Cellar/
+
 build_script:
   - sh: >-
       mkdir build
@@ -31,7 +39,8 @@ build_script:
       cmake /tmp/source -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DCI=${CI} -DBUILD_VERSION=${appveyor_build_version} -DENABLE_STATIC_ANALYSIS=${ENABLE_STATIC_ANALYSIS}
       &&
       cmake --build . --config "RelWithDebInfo"
-
+      &&
+      pwd && ls -l && ls -l output/*
 
 artifacts:
   - path: build/output/*
