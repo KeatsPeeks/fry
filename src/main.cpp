@@ -14,6 +14,12 @@ int main(int argc, char** argv) {
 static const int SCREEN_WIDTH = 640;
 static const int SCREEN_HEIGHT = 480;
 
+template<class T>
+using SDLDestructor = void (*)(T *);
+template<class T>
+std::unique_ptr<T, SDLDestructor<T>> sdl_ptr(T *p, SDLDestructor<T> fun) {
+    return std::unique_ptr<T, SDLDestructor<T>>{p, fun};
+}
 
 int mainImpl(int /*argc*/, char** /*argv*/) {
     std::cout << "Build " << BUILD_VERSION << '\n';
@@ -22,12 +28,12 @@ int mainImpl(int /*argc*/, char** /*argv*/) {
         return 2;
     }
 
-    std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> window{SDL_CreateWindow(
+    auto window = sdl_ptr(SDL_CreateWindow(
             "hello_sdl2",
             SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
             SCREEN_WIDTH, SCREEN_HEIGHT,
             SDL_WINDOW_SHOWN
-    ), SDL_DestroyWindow};
+    ), SDL_DestroyWindow);
 
     if (window == nullptr) {
         return 1;
