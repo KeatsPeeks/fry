@@ -1,5 +1,14 @@
 cmake_minimum_required(VERSION 3.15)
 
+#--------------------------------------------------------
+# Hunter package manager
+#--------------------------------------------------------
+include("HunterGate.cmake")
+HunterGate(
+    URL "https://github.com/cpp-pm/hunter/archive/v0.23.254.tar.gz"
+    SHA1 "017e688b9848c1f695303e8cfe9f35d40e154112"
+)
+
 project(fry)
 
 #--------------------------------------------------------
@@ -64,7 +73,30 @@ endif()
 message(STATUS "CMAKE_CXX_FLAGS = '${CMAKE_CXX_FLAGS}'")
 
 #--------------------------------------------------------
-# Target
+# Libraries
 #--------------------------------------------------------
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY output)
+
+hunter_add_package(SDL2)
+find_package(SDL2 CONFIG REQUIRED)
+set(APP_LINKER_LIBS SDL2::SDL2)
+
+
+#--------------------------------------------------------
+# Outpout
+#--------------------------------------------------------
+
 add_executable(${CMAKE_PROJECT_NAME} src/main.cpp src/main.h)
+
+if(MSVC)
+    # This warnings informs us that the linker cannot find debug info pour external librairies; we don't care
+    set(LINKER_FLAGS ${LINKER_FLAGS} -ignore:4099)
+endif()
+
+# use the non-debug version of SDL2 in RelWithDebInfo and MinSizeRel build types
+set_target_properties(SDL2::SDL2 SDL2::SDL2main PROPERTIES
+    MAP_IMPORTED_CONFIG_MINSIZEREL Release
+    MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY output)
+
+target_link_libraries(${CMAKE_PROJECT_NAME} ${APP_LINKER_LIBS} ${LINKER_FLAGS})
