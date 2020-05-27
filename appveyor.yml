@@ -86,7 +86,7 @@ for:
 
           cd build
 
-          cmake c:\projects\source -G "Visual Studio 16 2019" -DCI=$(CI) -DBUILD_VERSION=$(appveyor_build_version)
+          cmake c:\projects\source -G "Visual Studio 16 2019" -DCI=%CI% -DBUILD_VERSION=%APPVEYOR_BUILD_VERSION%
 
           cmake --build . --config "RelWithDebInfo"
 
@@ -101,7 +101,7 @@ after_build:
   - ps: Add-Content -Path "$HOME/.git-credentials" -Value "https://$($env:access_token):x-oauth-basic@github.com`n" -NoNewline
   - git config --global user.email "samuel.lacroix1@gmail.com"
   - git config --global user.name "Samuel Lacroix"
-  - cmd: git push --delete origin latest-$(APP_NAME) & SET ERRORLEVEL=0
+  - cmd: git push --delete origin latest-%APP_NAME% & SET ERRORLEVEL=0
   - sh: git push --delete origin latest-${APP_NAME} || true
 
 deploy:
