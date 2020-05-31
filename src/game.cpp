@@ -51,25 +51,23 @@ namespace app {
         renderer.present();
     }
 
-    void Game::mainLoop() {
+    bool Game::mainLoop() {
+        bool exit = false;
 
-        GameClock clock{};
-
-        for (bool exit{}; !exit;) {
-            std::vector<SDL_Event> events;
-            for (SDL_Event event; SDL_PollEvent(&event) != 0;) {
-                if (SDL_QUIT == event.type) {
-                    exit = true;
-                }
-                events.push_back(event);
+        std::vector<SDL_Event> events;
+        for (SDL_Event event; SDL_PollEvent(&event) != 0;) {
+            if (SDL_QUIT == event.type) {
+                exit = true;
             }
-            handleEvents(events);
-
-            GameTime gameTime = clock.update();
-            update(gameTime);
-            render(gameTime);
+            events.push_back(event);
         }
+        handleEvents(events);
 
+        GameTime gameTime = clock.update();
+        update(gameTime);
+        render(gameTime);
+
+        return exit;
     }
 
 

@@ -11,11 +11,12 @@ namespace app {
     public:
         explicit Game(SDL_Window *pWindow);
 
-        void mainLoop();
+        bool mainLoop();
 
     private:
         sdl::Renderer renderer;
         sdl::Texture gridTexture;
+        GameClock clock{};
 
         void handleEvents(const std::vector<SDL_Event>& events);
 

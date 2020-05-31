@@ -1,6 +1,10 @@
 #include "game.h"
 #include "version.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
 
@@ -35,7 +39,22 @@ int main(int /*argc*/, char** /*argv*/) {
         app::Game game{pWindow.get()};
 
         spdlog::info("Entering main loop");
-        game.mainLoop();
+
+#ifdef __EMSCRIPTEN__
+        // Note: A lambda can only be converted to a function pointer if it does not capture, so we
+        // use the callback arguments to access the real loop
+        emscripten_set_main_loop_arg([](void* arg) {
+            auto pGame = static_cast<app::Game*>(arg);
+            auto stop = pGame->mainLoop();
+            if (stop) {
+                emscripten_cancel_main_loop();
+            }
+        }, &game, 0, 1);
+#else
+        while (!game.mainLoop()) {
+            // no-op
+        }
+#endif
         spdlog::info("Exiting main main loop");
     } catch (const std::exception& ex) {
         spdlog::critical("Unhandled exception : {}", ex.what());
