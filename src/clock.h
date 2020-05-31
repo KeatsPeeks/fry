@@ -1,7 +1,6 @@
 #pragma once
 
 #include <chrono>
-#include <spdlog/spdlog.h>
 
 namespace app {
 

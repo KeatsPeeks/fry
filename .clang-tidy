@@ -1,4 +1,4 @@
 ---
-Checks: '*,-fuchsia-*,-modernize-use-trailing-return-type,-hicpp-signed-bitwise'
+Checks: '*,-fuchsia-*,-modernize-use-trailing-return-type,-hicpp-signed-bitwise,-cppcoreguidelines-pro-type-union-access'
 WarningsAsErrors: '*'
 

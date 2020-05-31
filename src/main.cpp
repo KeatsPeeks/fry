@@ -2,6 +2,7 @@
 #include "version.h"
 
 #include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/spdlog.h>
 
 constexpr int DEFAULT_WIDTH{1024};
 constexpr int DEFAULT_HEIGHT{768};
@@ -24,21 +25,25 @@ int main(int /*argc*/, char** /*argv*/) {
     }
 
     try {
-        auto pWindow{app::make_unique(SDL_CreateWindow(
+        auto pWindow{app::sdl::make_unique(SDL_CreateWindow(
                 "Sam's App",
                 SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                 DEFAULT_WIDTH, DEFAULT_HEIGHT,
-                SDL_WINDOW_SHOWN
+                SDL_WINDOW_RESIZABLE
         ), SDL_DestroyWindow)};
 
         app::Game game{pWindow.get()};
 
+        spdlog::info("Entering main loop");
         game.mainLoop();
+        spdlog::info("Exiting main main loop");
     } catch (const std::exception& ex) {
         spdlog::critical("Unhandled exception : {}", ex.what());
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal error", ex.what(), nullptr);
     }
     SDL_Quit();
+    spdlog::info("Graceful Exit");
+    spdlog::default_logger()->flush();
     return 0;
 }
 
