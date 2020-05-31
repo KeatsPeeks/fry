@@ -102,7 +102,7 @@ if(MSVC)
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY output)
-add_executable(${CMAKE_PROJECT_NAME} ${WIN32_EXE} src/main.cpp src/game.cpp src/game.h src/clock.h)
+add_executable(${CMAKE_PROJECT_NAME} ${WIN32_EXE} src/main.cpp src/game.cpp src/game.h src/clock.h src/colors.h src/sdl_wrappers.h src/version.h src/simulation.cpp src/simulation.h)
 
 # use the non-debug versions for RelWithDebInfo and MinSizeRel build types
 set_target_properties(SDL2::SDL2 SDL2::SDL2main spdlog::spdlog fmt::fmt PROPERTIES

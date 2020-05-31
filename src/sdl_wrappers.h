@@ -54,6 +54,7 @@ namespace app::sdl {
         void setBlendMode(SDL_BlendMode blendMode) const {
             sdl::check(SDL_SetTextureBlendMode(getRaw(), blendMode));
         }
+
     };
 
     class Renderer : public SdlResource<SDL_Renderer> {
