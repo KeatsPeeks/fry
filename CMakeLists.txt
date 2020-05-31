@@ -80,7 +80,9 @@ message(STATUS "CMAKE_CXX_FLAGS = '${CMAKE_CXX_FLAGS}'")
 
 hunter_add_package(SDL2)
 find_package(SDL2 CONFIG REQUIRED)
-set(APP_LINKER_LIBS SDL2::SDL2)
+hunter_add_package(spdlog)
+find_package(spdlog CONFIG REQUIRED)
+set(APP_LINKER_LIBS SDL2::SDL2 SDL2::SDL2main spdlog::spdlog)
 
 
 #--------------------------------------------------------
@@ -95,15 +97,15 @@ if(MSVC)
     # LNK4075: "ignoring '/INCREMENTAL' due to '/OPT:REF' specification"
     # /OPT:Ref: always eliminates functions and data that are never referenced, even with debug info
     # /ENTRY:mainCRTStartup: required for /subsystem:windows
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ignore:4099 -ignore:4075 /OPT:Ref /ENTRY:mainCRTStartup")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ignore:4099 -ignore:4075 /OPT:Ref")
 
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY output)
-add_executable(${CMAKE_PROJECT_NAME} ${WIN32_EXE} src/main.cpp src/main.h)
+add_executable(${CMAKE_PROJECT_NAME} ${WIN32_EXE} src/main.cpp src/game.cpp src/game.h src/clock.h)
 
-# use the non-debug version of SDL2 in RelWithDebInfo and MinSizeRel build types
-set_target_properties(SDL2::SDL2 SDL2::SDL2main PROPERTIES
+# use the non-debug versions for RelWithDebInfo and MinSizeRel build types
+set_target_properties(SDL2::SDL2 SDL2::SDL2main spdlog::spdlog fmt::fmt PROPERTIES
     MAP_IMPORTED_CONFIG_MINSIZEREL Release
     MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
 )

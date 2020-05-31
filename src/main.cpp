@@ -1,54 +1,44 @@
-#include <iostream>
-#include <memory>
+#include "game.h"
+#include "version.h"
 
-int mainImpl(int argc, char** argv);
+#include <spdlog/sinks/basic_file_sink.h>
 
-int main(int argc, char** argv) {
-    return mainImpl(argc, argv);
+constexpr int DEFAULT_WIDTH{1024};
+constexpr int DEFAULT_HEIGHT{768};
+
+void init_loggers() {
+    auto file_logger{spdlog::basic_logger_mt("root", "lastexecution.log", true)};
+    spdlog::set_default_logger(file_logger);
+    spdlog::flush_on(spdlog::level::critical);
 }
 
-#include <SDL2/SDL.h>
+int main(int /*argc*/, char** /*argv*/) {
+    init_loggers();
 
-#include "main.h"
+    spdlog::info("Startup");
+    spdlog::info("Build {}", BUILD_VERSION);
 
-static const int SCREEN_WIDTH = 640;
-static const int SCREEN_HEIGHT = 480;
-
-template<class T>
-using SDLDestructor = void (*)(T *);
-template<class T>
-std::unique_ptr<T, SDLDestructor<T>> sdl_ptr(T *p, SDLDestructor<T> fun) {
-    return std::unique_ptr<T, SDLDestructor<T>>{p, fun};
-}
-
-int mainImpl(int /*argc*/, char** /*argv*/) {
-    std::cout << "Build " << BUILD_VERSION << '\n';
-
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        return 2;
-    }
-
-    auto window = sdl_ptr(SDL_CreateWindow(
-            "hello_sdl2",
-            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-            SCREEN_WIDTH, SCREEN_HEIGHT,
-            SDL_WINDOW_SHOWN
-    ), SDL_DestroyWindow);
-
-    if (window == nullptr) {
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        spdlog::critical("Unable to initialize SDL: {}", SDL_GetError());
         return 1;
     }
-    SDL_Surface* screenSurface = SDL_GetWindowSurface(window.get());
-    SDL_FillRect(screenSurface, nullptr, SDL_MapRGB(screenSurface->format, 0, 0, 0));
-    SDL_UpdateWindowSurface(window.get());
-    static SDL_Event event;
-    while (true) {
-        SDL_PollEvent(&event);
-        if ((SDL_QUIT == event.type) || (SDL_KEYDOWN == event.type && SDL_SCANCODE_ESCAPE == event.key.keysym.scancode)) {
-            break;
-        }
+
+    try {
+        auto pWindow{app::make_unique(SDL_CreateWindow(
+                "Sam's App",
+                SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                DEFAULT_WIDTH, DEFAULT_HEIGHT,
+                SDL_WINDOW_SHOWN
+        ), SDL_DestroyWindow)};
+
+        app::Game game{pWindow.get()};
+
+        game.mainLoop();
+    } catch (const std::exception& ex) {
+        spdlog::critical("Unhandled exception : {}", ex.what());
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal error", ex.what(), nullptr);
     }
     SDL_Quit();
-
     return 0;
 }
+
