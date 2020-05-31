@@ -7,6 +7,7 @@
 
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
+#include <iostream>
 
 constexpr int DEFAULT_WIDTH{1024};
 constexpr int DEFAULT_HEIGHT{768};
@@ -44,9 +45,16 @@ int main(int /*argc*/, char** /*argv*/) {
         // Note: A lambda can only be converted to a function pointer if it does not capture, so we
         // use the callback arguments to access the real loop
         emscripten_set_main_loop_arg([](void* arg) {
-            auto pGame = static_cast<app::Game*>(arg);
-            auto stop = pGame->mainLoop();
-            if (stop) {
+            try {
+                auto pGame = static_cast<app::Game*>(arg);
+                auto stop = pGame->mainLoop();
+                if (stop) {
+                    emscripten_cancel_main_loop();
+                }
+            } catch (const std::exception& ex) {
+                spdlog::critical("Unhandled exception : {}", ex.what());
+                std::cerr << ex.what();
+                SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal error", ex.what(), nullptr);
                 emscripten_cancel_main_loop();
             }
         }, &game, 0, 1);
@@ -58,6 +66,7 @@ int main(int /*argc*/, char** /*argv*/) {
         spdlog::info("Exiting main main loop");
     } catch (const std::exception& ex) {
         spdlog::critical("Unhandled exception : {}", ex.what());
+        std::cerr << ex.what();
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal error", ex.what(), nullptr);
     }
     SDL_Quit();
