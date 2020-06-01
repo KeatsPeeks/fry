@@ -1,8 +1,6 @@
 #include "simulation.h"
-#include "clock.h"
 #include <algorithm>
 #include <execution>
-#include <spdlog/spdlog.h>
 
 namespace app {
 
@@ -74,4 +72,4 @@ namespace app {
         }
     }
 
-}
+}  // namespace app
