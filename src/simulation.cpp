@@ -1,12 +1,11 @@
 #include "simulation.h"
 #include <algorithm>
-#include <execution>
 
 namespace app {
 
-    Simulation::Simulation(size_t size, const std::vector<std::vector<uint8_t>> &pattern) : size{size} {
+    Simulation::Simulation(int size, const std::vector<std::vector<uint8_t>> &pattern) : size{size} {
         matrix.resize(size);
-        for (size_t i = 0; i < size; ++i) {
+        for (int i = 0; i < size; ++i) {
             matrix[i].resize(size);
         }
 
@@ -14,7 +13,7 @@ namespace app {
         matrixCopy = matrix;
     }
 
-    void Simulation::set(size_t x, size_t y, bool alive) {
+    void Simulation::set(int x, int y, bool alive) {
         matrix[y][x] = alive;
         if (alive && x > 1 && x < size - 2 && y > 1 && y < size - 2) {
             changeList.insert(std::make_pair(x - 1, y - 1));
@@ -32,14 +31,14 @@ namespace app {
     void Simulation::nextStep() {
         std::copy(matrix.cbegin(), matrix.cend(), matrixCopy.begin());
 
-        std::vector<std::pair<size_t, size_t>> changeListCopy(changeList.cbegin(), changeList.cend());
+        std::vector<std::pair<int, int>> changeListCopy{changeList.cbegin(), changeList.cend()};
 
         changeList.clear();
 
         for (const auto & it : changeListCopy) {
 
-            size_t x = it.first;
-            size_t y = it.second;
+            int x = it.first;
+            int y = it.second;
             int nbAliveNeighbours = 0;
 
             nbAliveNeighbours += matrixCopy[y - 1][x - 1] ? 1 : 0;
@@ -62,12 +61,14 @@ namespace app {
     }
 
     void Simulation::init(std::vector<std::vector<uint8_t>> pattern) {
-        const size_t yOffset = (size - pattern.size()) / 2;
-        for (size_t y = 0; y < pattern.size(); ++y) {
+        int height = static_cast<int>(pattern.size());
+        const int yOffset = (size - height) / 2;
+        for (int y = 0; y < height; ++y) {
             const auto& row = pattern[y];
-            const size_t xOffset = (size - row.size()) / 2;
-            for (size_t x = 0; x < row.size(); ++x) {
-                set(x+xOffset, y + yOffset, row[x] == 1);
+            int width = static_cast<int>(row.size());
+            const int xOffset = (size - width) / 2;
+            for (int x = 0; x < width; ++x) {
+                set(x + xOffset, y + yOffset, row[x] == 1);
             }
         }
     }

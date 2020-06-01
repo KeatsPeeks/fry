@@ -1,17 +1,19 @@
 #include "game.h"
 #include "colors.h"
+#include "patterns.h"
 #include <fmt/format.h>
 
 namespace app {
 
-    static const int cellSize = 8;
+    static const int cellSize = 2;
     static const int simSize = 2048;
-    static const int benchIters = 2048;
-    static const std::vector<std::vector<uint8_t>> pattern = {
-            {0, 1, 0, 0, 0, 0, 0},
-            {0, 0, 0, 1, 0, 0, 0},
-            {1, 1, 0, 0, 1, 1, 1}
-    };
+    static const int benchIters = 4000;
+    static const bool displayGrid = false;
+    static const int speed = 1;
+    static const auto defaultPattern = []() { return Patterns::acorn(); };
+
+    static const uint32_t ALIVE_COLOR = 0xFF0033FF;
+    static const uint32_t DEAD_COLOR = 0xFF00A000;
 
     sdl::Texture static createNewRenderTexture(const sdl::Renderer& renderer) {
         SDL_Point textureSize = renderer.getOutputSize();
@@ -48,12 +50,12 @@ namespace app {
         renderer{SDL_CreateRenderer(pWindow, -1, SDL_RENDERER_ACCELERATED)},
         gridTexture{createNewGridTexture(renderer)},
         renderTexture{createNewRenderTexture(renderer)},
-        simulation{simSize, pattern}
+        simulation{simSize, defaultPattern()}
     {
         SDL_Point textureSize = renderer.getOutputSize();
 
         SDL_Point gridSize{textureSize.x / cellSize, textureSize.y / cellSize};
-        pixels = std::vector<uint32_t>(static_cast<unsigned int>(gridSize.x * gridSize.y));
+        pixels = std::vector<uint32_t>(gridSize.x * gridSize.y);
     }
 
     void Game::handleEvents(const std::vector<SDL_Event>& events) {
@@ -82,7 +84,7 @@ namespace app {
                 simulation.nextStep();
             }
             const GameTime gameTime = clock.update();
-            auto message = fmt::format("{} iterations in {} ms", benchIters, gameTime.elapsedTime.count() * 1000);
+            auto message = fmt::format("{} iterations per second", std::lround(benchIters / gameTime.elapsedTime.count()));
             throw std::runtime_error(message);
             benchmark = false;
         }
@@ -96,7 +98,7 @@ namespace app {
             SDL_Point textureSize = renderer.getOutputSize();
             SDL_Point gridSize{textureSize.x / cellSize, textureSize.y / cellSize};
 
-            const int size = static_cast<int>(simulation.getSize());
+            const int size = simulation.getSize();
             const int yOffset = (size - gridSize.y) / 2;
             const int xOffset = (size - gridSize.x) / 2;
             const int yMat = y / cellSize + yOffset;
@@ -111,11 +113,12 @@ namespace app {
         SDL_Point textureSize = renderer.getOutputSize();
 
         SDL_Point gridSize{textureSize.x / cellSize, textureSize.y / cellSize};
-        pixels = std::vector<uint32_t>(static_cast<unsigned int>(gridSize.x * gridSize.y));
+        pixels = std::vector<uint32_t>(gridSize.x * gridSize.y);
     }
 
+
     void Game::render(const GameTime& /*gameTime*/) {
-        const int size = static_cast<int>(simulation.getSize());
+        const int size = simulation.getSize();
         SDL_Point textureSize = renderer.getOutputSize();
 
         SDL_Point gridSize{textureSize.x / cellSize, textureSize.y / cellSize};
@@ -126,15 +129,17 @@ namespace app {
             for (int xTex = 0; xTex < gridSize.x; ++xTex) {
                 const int y = yTex + yOffset;
                 const int x = xTex + xOffset;
-                const size_t pixelIndex = static_cast<size_t>(yTex * gridSize.x + xTex);
+                const int pixelIndex = yTex * gridSize.x + xTex;
                 const bool alive = y >= 0 && x >= 0 && y < size && x < size && simulation.get(x, y);
-                pixels[pixelIndex] = alive ? 0xAFFF33FF : 0xFF00CC00;
+                pixels[pixelIndex] = alive ? ALIVE_COLOR : DEAD_COLOR;
             }
         }
         sdl::check(SDL_UpdateTexture(renderTexture.getRaw(), nullptr, &pixels[0], gridSize.x * SDL_BYTESPERPIXEL(SDL_PIXELFORMAT_ARGB8888)));
         renderer.copy(renderTexture.getRaw(), nullptr, nullptr);
 
-        renderer.copy(gridTexture.getRaw(), nullptr, nullptr);
+        if (displayGrid) {
+            renderer.copy(gridTexture.getRaw(), nullptr, nullptr);
+        }
         renderer.present();
     }
 
@@ -152,7 +157,9 @@ namespace app {
         handleEvents(events);
 
         GameTime gameTime = clock.update();
-        update(gameTime);
+        for (int i = 0; i< speed; ++i) {
+            update(gameTime);
+        }
         render(gameTime);
 
         return exit;

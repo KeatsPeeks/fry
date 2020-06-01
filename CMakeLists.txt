@@ -66,9 +66,9 @@ if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /diagnostics:classic")
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU.*")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_GCC_WARNINGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_GCC_WARNINGS} -DENABLE_PMR")
 elseif(MSVC) # last, because MSVC is defined in clang-cl
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MSVC_WARNINGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MSVC_WARNINGS} -DENABLE_PMR")
 else()
     message(AUTHOR_WARNING "No compiler warnings set for '${CMAKE_CXX_COMPILER_ID}' compiler.")
 endif()
@@ -102,7 +102,7 @@ if(MSVC)
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY output)
-add_executable(${CMAKE_PROJECT_NAME} ${WIN32_EXE} src/main.cpp src/game.cpp src/game.h src/clock.h src/colors.h src/sdl_wrappers.h src/version.h src/simulation.cpp src/simulation.h)
+add_executable(${CMAKE_PROJECT_NAME} ${WIN32_EXE} src/main.cpp src/game.cpp src/game.h src/clock.h src/colors.h src/sdl_wrappers.h src/version.h src/simulation.cpp src/simulation.h src/patterns.h)
 
 # use the non-debug versions for RelWithDebInfo and MinSizeRel build types
 set_target_properties(SDL2::SDL2 SDL2::SDL2main spdlog::spdlog fmt::fmt PROPERTIES

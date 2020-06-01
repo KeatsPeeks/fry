@@ -5,9 +5,9 @@
 #include <emscripten.h>
 #endif
 
+#include <iostream>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
-#include <iostream>
 
 constexpr int DEFAULT_WIDTH{1024};
 constexpr int DEFAULT_HEIGHT{768};
@@ -52,6 +52,7 @@ int main(int /*argc*/, char** /*argv*/) {
                     emscripten_cancel_main_loop();
                 }
             } catch (const std::exception& ex) {
+                // exceptions can't escape the emscripten loop
                 spdlog::critical("Unhandled exception : {}", ex.what());
                 std::cerr << ex.what();
                 SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal error", ex.what(), nullptr);
@@ -66,8 +67,9 @@ int main(int /*argc*/, char** /*argv*/) {
         spdlog::info("Exiting main main loop");
     } catch (const std::exception& ex) {
         spdlog::critical("Unhandled exception : {}", ex.what());
-        std::cerr << ex.what();
+        std::cerr << "Unhandled exception : " << ex.what() << std::endl;
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal error", ex.what(), nullptr);
+        return 1;
     }
     SDL_Quit();
     spdlog::info("Graceful Exit");

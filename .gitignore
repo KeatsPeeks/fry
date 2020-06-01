@@ -1,3 +1,6 @@
 .idea
-notes.md
 build*/
+pics/
+
+notes.md
+emscripten_*.bat

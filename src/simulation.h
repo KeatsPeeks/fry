@@ -3,13 +3,15 @@
 #include <vector>
 #include <array>
 #include <unordered_set>
+#ifdef ENABLE_PMR
 #include <memory_resource>
+#endif
 
 namespace app {
     struct pair_hash
     {
         template <class T1, class T2>
-        std::size_t operator ()(std::pair<T1, T2> const &pair) const
+        int operator ()(std::pair<T1, T2> const &pair) const
         {
             return pair.first ^ pair.second;
         }
@@ -20,21 +22,25 @@ namespace app {
     class Simulation
     {
     public:
-        explicit Simulation(size_t size, const std::vector<std::vector<uint8_t>>& pattern = {});
-        [[nodiscard]] bool get(size_t x, size_t y) const { return matrix[y][x]; }
-        void set(size_t x, size_t y, bool alive);
-        [[nodiscard]] size_t getSize() const { return size; }
+        explicit Simulation(int size, const std::vector<std::vector<uint8_t>>& pattern = {});
+        [[nodiscard]] bool get(int x, int y) const { return matrix[y][x]; }
+        void set(int x, int y, bool alive);
+        [[nodiscard]] int getSize() const { return size; }
 
         void nextStep();
 
     private:
-        const size_t size;
+        const int size;
 
         std::vector<std::vector<bool>> matrix;
         std::vector<std::vector<bool>> matrixCopy;
 
-        std::pmr::unsynchronized_pool_resource mbr{};
-        std::pmr::unordered_set<std::pair<size_t, size_t>, pair_hash> changeList{&mbr};
+#ifdef ENABLE_PMR
+        std::pmr::unsynchronized_pool_resource pool{};
+        std::pmr::unordered_set<std::pair<int, int>, pair_hash> changeList{&pool};
+#else
+        std::unordered_set<std::pair<size_t, size_t>, pair_hash> changeList{};
+#endif
 
         void init(std::vector<std::vector<uint8_t>> pattern);
     };
