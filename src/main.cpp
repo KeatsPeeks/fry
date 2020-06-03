@@ -1,4 +1,5 @@
 #include "game.h"
+#include "sdl_wrappers.h"
 #include "version.h"
 
 #ifdef __EMSCRIPTEN__
@@ -30,14 +31,14 @@ int main(int /*argc*/, char** /*argv*/) {
     }
 
     try {
-        auto pWindow{app::sdl::make_unique(SDL_CreateWindow(
+        app::sdl::Window window{SDL_CreateWindow(
                 "Sam's App",
                 SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                 DEFAULT_WIDTH, DEFAULT_HEIGHT,
                 SDL_WINDOW_RESIZABLE
-        ), SDL_DestroyWindow)};
+        )};
 
-        app::Game game{pWindow.get()};
+        app::Game game{&window};
 
         spdlog::info("Entering main loop");
 

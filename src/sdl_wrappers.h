@@ -57,6 +57,21 @@ namespace app::sdl {
 
     };
 
+    class Window : public SdlResource<SDL_Window> {
+    public:
+        explicit Window(SDL_Window* pWindow) : SdlResource(make_unique(pWindow, SDL_DestroyWindow)) {}
+
+        [[nodiscard]] SDL_Point getSize() const {
+            SDL_Point p;
+            SDL_GetWindowSize(getRaw(), &p.x, &p.y);
+            return p;
+        }
+
+        void setSize(int w, int h) {
+            SDL_SetWindowSize(getRaw(), w, h);
+        }
+    };
+
     class Renderer : public SdlResource<SDL_Renderer> {
     public:
         explicit Renderer(SDL_Renderer* pRenderer) : SdlResource(make_unique(pRenderer, SDL_DestroyRenderer)) {}

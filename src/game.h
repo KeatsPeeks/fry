@@ -10,11 +10,12 @@ namespace app {
 
     class Game final {
     public:
-        explicit Game(SDL_Window *pWindow);
+        explicit Game(sdl::Window* window);
 
         bool mainLoop();
 
     private:
+        sdl::Window* window;
         sdl::Renderer renderer;
         sdl::Texture gridTexture;
         sdl::Texture renderTexture;

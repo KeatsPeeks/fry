@@ -5,10 +5,10 @@
 
 namespace app {
 
-    static const int cellSize = 2;
+    static const int cellSize = 12;
     static const int simSize = 2048;
     static const int benchIters = 4000;
-    static const bool displayGrid = false;
+    static const bool displayGrid = true;
     static const int speed = 1;
     static const auto defaultPattern = []() { return Patterns::acorn(); };
 
@@ -16,17 +16,18 @@ namespace app {
     static const uint32_t DEAD_COLOR = 0xFF00A000;
 
     sdl::Texture static createNewRenderTexture(const sdl::Renderer& renderer) {
-        SDL_Point textureSize = renderer.getOutputSize();
+        const SDL_Point textureSize = renderer.getOutputSize();
 
-        SDL_Point gridSize{textureSize.x / cellSize, textureSize.y / cellSize};
-        sdl::Texture texture{SDL_CreateTexture(renderer.getRaw(), SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, gridSize.x, gridSize.y)};
-        return texture;
+        const SDL_Point gridSize{textureSize.x / cellSize, textureSize.y / cellSize};
+        return sdl::Texture{SDL_CreateTexture(renderer.getRaw(), SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, gridSize.x, gridSize.y)};
     }
 
     sdl::Texture static createNewGridTexture(const sdl::Renderer& renderer) {
 
         SDL_Point textureSize = renderer.getOutputSize();
-        SDL_Point gridSize{textureSize.x / cellSize + 1, textureSize.y / cellSize + 1};
+        textureSize.x = textureSize.x - textureSize.x % cellSize;
+        textureSize.y = textureSize.y - textureSize.y % cellSize;
+        const SDL_Point gridSize{textureSize.x / cellSize + 1, textureSize.y / cellSize + 1};
 
         sdl::Texture texture{SDL_CreateTexture(renderer.getRaw(), SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, textureSize.x, textureSize.y)};
         texture.setBlendMode(SDL_BLENDMODE_BLEND);
@@ -35,26 +36,27 @@ namespace app {
         renderer.clear();
         renderer.setDrawColor(GRID_COLOR);
         std::vector<SDL_Point> points;
-        for (int y = 0; y < gridSize.y; ++y) {
-            renderer.drawLine(0, (y + 1) * cellSize, gridSize.x * cellSize, (y + 1) * cellSize);
+        for (int y = 1; y <= gridSize.y; ++y) {
+            renderer.drawLine(0, y * cellSize, gridSize.x * cellSize, y * cellSize);
         }
-        for (int x = 0; x < gridSize.x; ++x) {
-            renderer.drawLine((x + 1) * cellSize, 0, (x + 1) * cellSize, gridSize.y * cellSize);
+        for (int x = 1; x <= gridSize.x; ++x) {
+            renderer.drawLine(x * cellSize, 0, x * cellSize, gridSize.y * cellSize);
         }
 
         renderer.setTarget(nullptr);
         return texture;
     }
 
-    Game::Game(SDL_Window *pWindow) :
-        renderer{SDL_CreateRenderer(pWindow, -1, SDL_RENDERER_ACCELERATED)},
+    Game::Game(sdl::Window* window) :
+        window(window),
+        renderer{SDL_CreateRenderer(window->getRaw(), -1, SDL_RENDERER_ACCELERATED)},
         gridTexture{createNewGridTexture(renderer)},
         renderTexture{createNewRenderTexture(renderer)},
         simulation{simSize, defaultPattern()}
     {
-        SDL_Point textureSize = renderer.getOutputSize();
+        const SDL_Point textureSize = renderer.getOutputSize();
 
-        SDL_Point gridSize{textureSize.x / cellSize, textureSize.y / cellSize};
+        const SDL_Point gridSize{textureSize.x / cellSize, textureSize.y / cellSize};
         pixels = std::vector<uint32_t>(gridSize.x * gridSize.y);
     }
 
@@ -84,7 +86,7 @@ namespace app {
                 simulation.nextStep();
             }
             const GameTime gameTime = clock.update();
-            auto message = fmt::format("{} iterations per second", std::lround(benchIters / gameTime.elapsedTime.count()));
+            const auto message = fmt::format("{} iterations per second", std::lround(benchIters / gameTime.elapsedTime.count()));
             throw std::runtime_error(message);
             benchmark = false;
         }
@@ -95,8 +97,8 @@ namespace app {
 
     void Game::onLeftMouse(int x, int y) {
         if (paused) {
-            SDL_Point textureSize = renderer.getOutputSize();
-            SDL_Point gridSize{textureSize.x / cellSize, textureSize.y / cellSize};
+            const SDL_Point textureSize = renderer.getOutputSize();
+            const SDL_Point gridSize{textureSize.x / cellSize, textureSize.y / cellSize};
 
             const int size = simulation.getSize();
             const int yOffset = (size - gridSize.y) / 2;
@@ -110,18 +112,18 @@ namespace app {
     void Game::onViewportChanged() {
         gridTexture = createNewGridTexture(renderer);
         renderTexture = createNewRenderTexture(renderer);
-        SDL_Point textureSize = renderer.getOutputSize();
+        const SDL_Point textureSize = renderer.getOutputSize();
 
-        SDL_Point gridSize{textureSize.x / cellSize, textureSize.y / cellSize};
+        const SDL_Point gridSize{textureSize.x / cellSize, textureSize.y / cellSize};
         pixels = std::vector<uint32_t>(gridSize.x * gridSize.y);
     }
 
 
     void Game::render(const GameTime& /*gameTime*/) {
         const int size = simulation.getSize();
-        SDL_Point textureSize = renderer.getOutputSize();
+        const SDL_Point textureSize = renderer.getOutputSize();
 
-        SDL_Point gridSize{textureSize.x / cellSize, textureSize.y / cellSize};
+        const SDL_Point gridSize{textureSize.x / cellSize, textureSize.y / cellSize};
         const int yOffset = (size - gridSize.y) / 2;
         const int xOffset = (size - gridSize.x) / 2;
 
@@ -156,7 +158,7 @@ namespace app {
         }
         handleEvents(events);
 
-        GameTime gameTime = clock.update();
+        const GameTime gameTime = clock.update();
         for (int i = 0; i< speed; ++i) {
             update(gameTime);
         }
