@@ -48,7 +48,6 @@ namespace app {
     }
 
     Game::Game(sdl::Window* window) :
-        window(window),
         renderer{SDL_CreateRenderer(window->getRaw(), -1, SDL_RENDERER_ACCELERATED)},
         gridTexture{createNewGridTexture(renderer)},
         renderTexture{createNewRenderTexture(renderer)},

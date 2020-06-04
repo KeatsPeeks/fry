@@ -15,7 +15,6 @@ namespace app {
         bool mainLoop();
 
     private:
-        sdl::Window* window;
         sdl::Renderer renderer;
         sdl::Texture gridTexture;
         sdl::Texture renderTexture;
