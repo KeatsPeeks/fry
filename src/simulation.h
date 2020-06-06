@@ -43,6 +43,8 @@ namespace app {
 #endif
 
         void init(std::vector<std::vector<uint8_t>> pattern);
+
+        void updateCell(int x, int y);
     };
 
 }  // namespace app

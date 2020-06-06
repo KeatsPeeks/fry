@@ -16,15 +16,7 @@ namespace app {
     void Simulation::set(int x, int y, bool alive) {
         matrix[y][x] = alive;
         if (alive && x > 1 && x < size - 2 && y > 1 && y < size - 2) {
-            changeList.insert(std::make_pair(x - 1, y - 1));
-            changeList.insert(std::make_pair(x - 1, y));
-            changeList.insert(std::make_pair(x - 1, y + 1));
-            changeList.insert(std::make_pair(x, y - 1));
             changeList.insert(std::make_pair(x, y));
-            changeList.insert(std::make_pair(x, y + 1));
-            changeList.insert(std::make_pair(x + 1, y - 1));
-            changeList.insert(std::make_pair(x + 1, y));
-            changeList.insert(std::make_pair(x + 1, y + 1));
         }
     }
 
@@ -36,28 +28,41 @@ namespace app {
         changeList.clear();
 
         for (const auto & it : changeListCopy) {
-
             int x = it.first;
             int y = it.second;
-            int nbAliveNeighbours = 0;
-
-            nbAliveNeighbours += matrixCopy[y - 1][x - 1] ? 1 : 0;
-            nbAliveNeighbours += matrixCopy[y - 1][x] ? 1 : 0;
-            nbAliveNeighbours += matrixCopy[y - 1][x + 1] ? 1 : 0;
-            nbAliveNeighbours += matrixCopy[y][x - 1] ? 1 : 0;
-            nbAliveNeighbours += matrixCopy[y][x + 1] ? 1 : 0;
-            nbAliveNeighbours += matrixCopy[y + 1][x - 1] ? 1 : 0;
-            nbAliveNeighbours += matrixCopy[y + 1][x] ? 1 : 0;
-            nbAliveNeighbours += matrixCopy[y + 1][x + 1] ? 1 : 0;
-            bool alive = matrixCopy[y][x];
-            if (!alive && nbAliveNeighbours == 3) {
-                alive = true; // birth
-            }
-            else if (alive && nbAliveNeighbours != 2 && nbAliveNeighbours != 3) {
-                alive = false; // death;
-            }
-            set(x, y, alive);
+            updateCell(x - 1, y );
+            updateCell(x, y);
+            updateCell(x + 1, y);
+            updateCell(x - 1, y -1);
+            updateCell(x, y - 1);
+            updateCell(x + 1, y - 1);
+            updateCell(x - 1, y + 1);
+            updateCell(x, y + 1);
+            updateCell(x + 1, y + 1);
         }
+
+
+    }
+
+    void Simulation::updateCell(int x, int y) {
+        int nbAliveNeighbours = 0;
+
+        nbAliveNeighbours += matrixCopy[y - 1][x - 1] ? 1 : 0;
+        nbAliveNeighbours += matrixCopy[y - 1][x] ? 1 : 0;
+        nbAliveNeighbours += matrixCopy[y - 1][x + 1] ? 1 : 0;
+        nbAliveNeighbours += matrixCopy[y][x - 1] ? 1 : 0;
+        nbAliveNeighbours += matrixCopy[y][x + 1] ? 1 : 0;
+        nbAliveNeighbours += matrixCopy[y + 1][x - 1] ? 1 : 0;
+        nbAliveNeighbours += matrixCopy[y + 1][x] ? 1 : 0;
+        nbAliveNeighbours += matrixCopy[y + 1][x + 1] ? 1 : 0;
+        bool alive = matrixCopy[y][x];
+        if (!alive && nbAliveNeighbours == 3) {
+            alive = true; // birth
+        }
+        else if (alive && nbAliveNeighbours != 2 && nbAliveNeighbours != 3) {
+            alive = false; // death;
+        }
+        set(x, y, alive);
     }
 
     void Simulation::init(std::vector<std::vector<uint8_t>> pattern) {
