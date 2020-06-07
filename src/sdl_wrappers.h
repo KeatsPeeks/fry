@@ -57,6 +57,11 @@ namespace app::sdl {
 
     };
 
+    class Surface : public SdlResource<SDL_Surface> {
+    public:
+        explicit Surface(SDL_Surface* pSurface) : SdlResource(make_unique(pSurface, SDL_FreeSurface)) {}
+    };
+
     class Window : public SdlResource<SDL_Window> {
     public:
         explicit Window(SDL_Window* pWindow) : SdlResource(make_unique(pWindow, SDL_DestroyWindow)) {}

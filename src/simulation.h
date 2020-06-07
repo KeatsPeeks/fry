@@ -1,8 +1,9 @@
 #pragma once
 
-#include <vector>
 #include <array>
+#include <cstdint>
 #include <unordered_set>
+#include <vector>
 #ifdef ENABLE_PMR
 #include <memory_resource>
 #endif

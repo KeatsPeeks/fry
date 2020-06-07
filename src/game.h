@@ -2,6 +2,7 @@
 
 #include "simulation.h"
 #include "clock.h"
+#include "nuklear_sdl.h"
 #include "sdl_wrappers.h"
 
 #include <vector>
@@ -23,6 +24,8 @@ namespace app {
         bool paused{true};
         bool benchmark{false};
         Simulation simulation;
+        NuklearSdl nuklearSdl;
+        nk_context* pNuklearCtx;
 
         void handleEvents(const std::vector<SDL_Event>& events);
         void onLeftMouse(int x, int y);

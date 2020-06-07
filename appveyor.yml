@@ -3,6 +3,9 @@ environment:
     secure:
       jsPv246qH9Lwg0FuzMy7rlz/TU+1tFaHKVEgRn/aG22kJ7MoBTXyvQaPrOL3EnHV
   matrix:
+  #  - job_name: Windows-MSVC
+  #    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+  #    APP_NAME: win
     - job_name: Linux-Clang
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
       CXX: clang++
@@ -14,12 +17,10 @@ environment:
       CXX: g++-10
       CC: gcc-10
       APP_NAME: linux-gcc
-    - job_name: Windows-MSVC
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      APP_NAME: win
     - job_name: MacOS-Clang
       APPVEYOR_BUILD_WORKER_IMAGE: macOS
       APP_NAME: macos
+
 
 version: '1.0.{build}'
 skip_tags: true
@@ -64,7 +65,7 @@ for:
         - job_name: Linux-Clang
 
     install:
-      - sh: sudo apt-get update && sudo apt-get install -y clang-tidy-10 cppcheck
+      - sh: sudo apt-get update && sudo apt-get install -y g++-10 g++-9 clang-tidy-10 cppcheck
 
   - # G++ update
     matrix:

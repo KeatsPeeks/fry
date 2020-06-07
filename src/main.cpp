@@ -1,5 +1,4 @@
 #include "game.h"
-#include "sdl_wrappers.h"
 #include "version.h"
 
 #ifdef __EMSCRIPTEN__
@@ -27,6 +26,10 @@ int main(int /*argc*/, char** /*argv*/) {
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         spdlog::critical("Unable to initialize SDL: {}", SDL_GetError());
+        return 1;
+    }
+    if (TTF_Init() != 0) {
+        spdlog::critical("Unable to initialize SDL_ttf: {}", SDL_GetError());
         return 1;
     }
 
@@ -72,6 +75,7 @@ int main(int /*argc*/, char** /*argv*/) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal error", ex.what(), nullptr);
         return 1;
     }
+    TTF_Quit();
     SDL_Quit();
     spdlog::info("Graceful Exit");
     spdlog::default_logger()->flush();

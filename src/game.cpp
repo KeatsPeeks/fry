@@ -1,7 +1,10 @@
 #include "game.h"
 #include "colors.h"
+#include "nuklear/nuklear.h"
 #include "patterns.h"
 #include <fmt/format.h>
+
+// #include "nuklear/overview.c"
 
 namespace app {
 
@@ -51,7 +54,9 @@ namespace app {
         renderer{SDL_CreateRenderer(window->getRaw(), -1, SDL_RENDERER_ACCELERATED)},
         gridTexture{createNewGridTexture(renderer)},
         renderTexture{createNewRenderTexture(renderer)},
-        simulation{simSize, defaultPattern()}
+        simulation{simSize, defaultPattern()},
+        nuklearSdl(window->getRaw(), renderer.getRaw(), "assets/Cousine-Regular.ttf", 16),
+        pNuklearCtx(&nuklearSdl.getContext())
     {
         const SDL_Point textureSize = renderer.getOutputSize();
 
@@ -87,7 +92,7 @@ namespace app {
             const GameTime gameTime = clock.update();
             const auto message = fmt::format("{} iterations per second", std::lround(benchIters / gameTime.elapsedTime.count()));
             throw std::runtime_error(message);
-            benchmark = false;
+//            benchmark = false;
         }
         if (!paused) {
             simulation.nextStep();
@@ -141,6 +146,53 @@ namespace app {
         if (displayGrid) {
             renderer.copy(gridTexture.getRaw(), nullptr, nullptr);
         }
+
+
+
+      //  overview(pNuklearCtx);
+
+//        if (nk_begin(pNuklearCtx, "Demo", nk_rect(50, 50, 230, 250),
+//                     NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|
+//                     NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
+//        {
+//            enum {EASY, HARD};
+//            static int op = EASY;
+//            static int property = 20;
+//
+//            nk_layout_row_static(pNuklearCtx, 30, 80, 1);
+//            if (nk_button_label(pNuklearCtx, "button"))
+//                fprintf(stdout, "button pressed\n");
+//            nk_layout_row_dynamic(pNuklearCtx, 30, 2);
+//            if (nk_option_label(pNuklearCtx, "easy", op == EASY)) op = EASY;
+//            if (nk_option_label(pNuklearCtx, "hard", op == HARD)) op = HARD;
+//            nk_layout_row_dynamic(pNuklearCtx, 25, 1);
+//            nk_property_int(pNuklearCtx, "Compression:", 0, &property, 100, 10, 1);
+//
+//            nk_layout_row_dynamic(pNuklearCtx, 20, 1);
+//            nk_label(pNuklearCtx, "background:", NK_TEXT_LEFT);
+//            nk_layout_row_dynamic(pNuklearCtx, 25, 1);
+//        }
+//        nk_end(pNuklearCtx);
+
+
+
+        if (0 != nk_begin(pNuklearCtx, "Controls", nk_rect(50, 50, 230, 250),
+                     NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|
+                     NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
+        {
+            static int check = nk_true;
+            nk_layout_row_static(pNuklearCtx, 30, 80, 1);
+            nk_checkbox_label(pNuklearCtx, "check", &check);
+
+        }
+        nk_end(pNuklearCtx);
+
+
+
+
+
+        nuklearSdl.render();
+
         renderer.present();
     }
 
@@ -148,14 +200,19 @@ namespace app {
         bool exit = false;
 
         std::vector<SDL_Event> events;
+        nk_input_begin(pNuklearCtx);
         for (SDL_Event event; SDL_PollEvent(&event) != 0;) {
             if (SDL_QUIT == event.type) {
                 exit = true;
             } else {
                 events.push_back(event);
             }
+            nuklearSdl.handleEvent(&event);
         }
-        handleEvents(events);
+        if (nk_window_is_any_hovered(pNuklearCtx) == 0) {
+            handleEvents(events);
+        }
+        nk_input_end(pNuklearCtx);
 
         const GameTime gameTime = clock.update();
         for (int i = 0; i< speed; ++i) {

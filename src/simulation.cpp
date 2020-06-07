@@ -14,8 +14,11 @@ namespace app {
     }
 
     void Simulation::set(int x, int y, bool alive) {
+        if (x <= 1 || y <= 1 || x >= size - 2 || y >= size - 2) {
+            return;
+        }
         matrix[y][x] = alive;
-        if (alive && x > 1 && x < size - 2 && y > 1 && y < size - 2) {
+        if (alive) {
             changeList.insert(std::make_pair(x, y));
         }
     }
@@ -40,8 +43,6 @@ namespace app {
             updateCell(x, y + 1);
             updateCell(x + 1, y + 1);
         }
-
-
     }
 
     void Simulation::updateCell(int x, int y) {
@@ -56,7 +57,7 @@ namespace app {
         nbAliveNeighbours += matrixCopy[y + 1][x] ? 1 : 0;
         nbAliveNeighbours += matrixCopy[y + 1][x + 1] ? 1 : 0;
         bool alive = matrixCopy[y][x];
-        if (!alive && nbAliveNeighbours == 3) {
+        if (nbAliveNeighbours == 3) {
             alive = true; // birth
         }
         else if (alive && nbAliveNeighbours != 2 && nbAliveNeighbours != 3) {
