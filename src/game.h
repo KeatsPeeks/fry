@@ -1,11 +1,13 @@
 #pragma once
 
-#include "simulation.h"
 #include "clock.h"
+#include "gui.h"
 #include "nuklear_sdl.h"
+#include "primitives.h"
 #include "sdl_wrappers.h"
+#include "simulation.h"
 
-#include <vector>
+#include <span>
 
 namespace app {
 
@@ -25,16 +27,17 @@ namespace app {
         bool benchmark{false};
         Simulation simulation;
         NuklearSdl nuklearSdl;
-        nk_context* pNuklearCtx;
+        Gui gui;
 
-        void handleEvents(const std::vector<SDL_Event>& events);
-        void onLeftMouse(int x, int y);
+        void handleEvents(std::span<SDL_Event> events);
+        void onLeftMouse(Point mouse);
 
         void update(const GameTime& gameTime);
 
         void render(const GameTime& gameTime);
 
         void onViewportChanged();
+
     };
 
 }  // namespace app

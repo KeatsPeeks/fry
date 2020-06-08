@@ -1,5 +1,6 @@
 #pragma once
 
+#include "primitives.h"
 #include <SDL2/SDL.h>
 #include <memory>
 #include <stdexcept>
@@ -55,6 +56,10 @@ namespace app::sdl {
             sdl::check(SDL_SetTextureBlendMode(getRaw(), blendMode));
         }
 
+        void update(const SDL_Rect* rect, const void* pixels, int pitch) {
+            sdl::check(SDL_UpdateTexture(getRaw(), rect, pixels, pitch));
+        }
+
     };
 
     class Surface : public SdlResource<SDL_Surface> {
@@ -66,9 +71,9 @@ namespace app::sdl {
     public:
         explicit Window(SDL_Window* pWindow) : SdlResource(make_unique(pWindow, SDL_DestroyWindow)) {}
 
-        [[nodiscard]] SDL_Point getSize() const {
-            SDL_Point p;
-            SDL_GetWindowSize(getRaw(), &p.x, &p.y);
+        [[nodiscard]] Size getSize() const {
+            Size p;
+            SDL_GetWindowSize(getRaw(), &p.w, &p.h);
             return p;
         }
 
@@ -89,17 +94,17 @@ namespace app::sdl {
             check(SDL_SetRenderDrawColor(getRaw(), color.r, color.g, color.b, color.a));
         }
 
-        void drawLine(int x1, int y1, int x2, int y2) const {
-            check(SDL_RenderDrawLine(getRaw(), x1, y1, x2, y2));
+        void drawLine(Point p1, Point p2) const {
+            check(SDL_RenderDrawLine(getRaw(), p1.x, p1.y, p2.x, p2.y));
         }
 
-        void copy(SDL_Texture* texture, const SDL_Rect * srcrect, const SDL_Rect * dstrect) const {
+        void copy(SDL_Texture* texture, const SDL_Rect* srcrect, const SDL_Rect* dstrect) const {
             SDL_RenderCopy(getRaw(), texture, srcrect, dstrect);
         }
 
-        [[nodiscard]] SDL_Point getOutputSize() const {
-            SDL_Point p;
-            SDL_GetRendererOutputSize(getRaw(), &p.x, &p.y);
+        [[nodiscard]] Size getOutputSize() const {
+            Size p;
+            SDL_GetRendererOutputSize(getRaw(), &p.w, &p.h);
             return p;
         }
 

@@ -177,7 +177,15 @@ namespace app {
         context.clip.userdata = nk_handle_ptr(nullptr);
     }
 
-    void NuklearSdl::handleEvent(SDL_Event *evt) {
+    void NuklearSdl::handleEvents(std::span<SDL_Event> events) {
+        nk_input_begin(&this->context);
+        for (const auto& event : events) {
+            handleEvent(event);
+        }
+        nk_input_end(&this->context);
+    }
+
+    void NuklearSdl::handleEvent(const SDL_Event& evt) {
         auto& ctx = this->context;
         /* optional grabbing behavior */
         if (ctx.input.mouse.grab != 0) {
@@ -190,15 +198,15 @@ namespace app {
             SDL_WarpMouseInWindow(win, x, y);
             ctx.input.mouse.ungrab = 0;
         }
-        if (evt->type == SDL_KEYUP || evt->type == SDL_KEYDOWN) {
+        if (evt.type == SDL_KEYUP || evt.type == SDL_KEYDOWN) {
             /* key events */
-            int down = evt->type == SDL_KEYDOWN ? 1 : 0;
+            int down = evt.type == SDL_KEYDOWN ? 1 : 0;
             int numkeys{};
             const Uint8* state = SDL_GetKeyboardState(&numkeys);
             std::span keyStates(state, numkeys);
             bool ctrl = keyStates[SDL_SCANCODE_LCTRL] == 1 || keyStates[SDL_SCANCODE_RCTRL] == 1;
             bool ctrlDown = ctrl && down == 1;
-            SDL_Keycode sym = evt->key.keysym.sym;
+            SDL_Keycode sym = evt.key.keysym.sym;
             if (sym == SDLK_RSHIFT || sym == SDLK_LSHIFT) {
                 nk_input_key(&ctx, NK_KEY_SHIFT, down);
             } else if (sym == SDLK_DELETE) {
@@ -250,38 +258,38 @@ namespace app {
                     nk_input_key(&ctx, NK_KEY_RIGHT, down);
                 }
             }
-        } else if (evt->type == SDL_MOUSEBUTTONDOWN || evt->type == SDL_MOUSEBUTTONUP) {
+        } else if (evt.type == SDL_MOUSEBUTTONDOWN || evt.type == SDL_MOUSEBUTTONUP) {
             /* mouse button */
-            int down = evt->type == SDL_MOUSEBUTTONDOWN ? 1 : 0;
-            const int x = evt->button.x;
-            const int y = evt->button.y;
-            if (evt->button.button == SDL_BUTTON_LEFT) {
-                if (evt->button.clicks > 1) {
+            int down = evt.type == SDL_MOUSEBUTTONDOWN ? 1 : 0;
+            const int x = evt.button.x;
+            const int y = evt.button.y;
+            if (evt.button.button == SDL_BUTTON_LEFT) {
+                if (evt.button.clicks > 1) {
                     nk_input_button(&ctx, NK_BUTTON_DOUBLE, x, y, down);
                 }
                 nk_input_button(&ctx, NK_BUTTON_LEFT, x, y, down);
-            } else if (evt->button.button == SDL_BUTTON_MIDDLE) {
+            } else if (evt.button.button == SDL_BUTTON_MIDDLE) {
                 nk_input_button(&ctx, NK_BUTTON_MIDDLE, x, y, down);
-            } else if (evt->button.button == SDL_BUTTON_RIGHT) {
+            } else if (evt.button.button == SDL_BUTTON_RIGHT) {
                 nk_input_button(&ctx, NK_BUTTON_RIGHT, x, y, down);
             }
-        } else if (evt->type == SDL_MOUSEMOTION) {
+        } else if (evt.type == SDL_MOUSEMOTION) {
             /* mouse motion */
             if (ctx.input.mouse.grabbed != 0) {
                 int x = static_cast<int>(ctx.input.mouse.prev.x);
                 int y = static_cast<int>(ctx.input.mouse.prev.y);
-                nk_input_motion(&ctx, x + evt->motion.xrel, y + evt->motion.yrel);
+                nk_input_motion(&ctx, x + evt.motion.xrel, y + evt.motion.yrel);
             } else {
-                nk_input_motion(&ctx, evt->motion.x, evt->motion.y);
+                nk_input_motion(&ctx, evt.motion.x, evt.motion.y);
             }
-        } else if (evt->type == SDL_TEXTINPUT) {
+        } else if (evt.type == SDL_TEXTINPUT) {
             /* text input */
             nk_glyph glyph;
-            memcpy(&glyph[0], &evt->text.text[0], NK_UTF_SIZE);
+            memcpy(&glyph[0], &evt.text.text[0], NK_UTF_SIZE);
             nk_input_glyph(&ctx, &glyph[0]);
-        } else if (evt->type == SDL_MOUSEWHEEL) {
+        } else if (evt.type == SDL_MOUSEWHEEL) {
             /* mouse wheel */
-            nk_input_scroll(&ctx, nk_vec2(static_cast<float>(evt->wheel.x), static_cast<float>(evt->wheel.y)));
+            nk_input_scroll(&ctx, nk_vec2(static_cast<float>(evt.wheel.x), static_cast<float>(evt.wheel.y)));
         }
     }
 

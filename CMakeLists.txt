@@ -64,18 +64,23 @@ endif()
 #--------------------------------------------------------
 if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_WARNINGS}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
     if(MSVC)
         # enables code navigation on errors in CLion with clang-cl
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /diagnostics:classic")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /diagnostics:classic")
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU.*")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_WARNINGS} -DENABLE_PMR")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 elseif(MSVC) # last, because MSVC is defined in clang-cl
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MSVC_WARNINGS} /DENABLE_PMR")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 else()
     message(AUTHOR_WARNING "No compiler warnings set for '${CMAKE_CXX_COMPILER_ID}' compiler.")
 endif()
 message(STATUS "CMAKE_CXX_FLAGS = '${CMAKE_CXX_FLAGS}'")
+message(STATUS "CMAKE_C_FLAGS = '${CMAKE_C_FLAGS}'")
 
 #--------------------------------------------------------
 # Libraries
@@ -114,14 +119,18 @@ set(APP_FILES
         src/colors.h
         src/game.cpp
         src/game.h
+        src/gui.cpp
+        src/gui.h
         src/main.cpp
         src/nuklear_sdl.cpp
         src/nuklear_sdl.h
         src/patterns.h
+        src/primitives.h
         src/sdl_wrappers.h
         src/simulation.cpp
         src/simulation.h
-        src/version.h)
+        src/version.h
+)
 add_executable(${CMAKE_PROJECT_NAME} ${WIN32_EXE} ${SDL2_GFX_FILES} ${NUKLEAR_FILES} ${APP_FILES})
 
 # use the non-debug versions for RelWithDebInfo and MinSizeRel build types

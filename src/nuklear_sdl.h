@@ -2,6 +2,7 @@
 
 #include "nuklear/nuklear.h"
 
+#include <span>
 #include <string_view>
 #include <SDL2/SDL.h>
 #include <SDL_ttf/SDL_ttf.h>
@@ -17,7 +18,7 @@ namespace app {
 
         [[nodiscard]] nk_context& getContext() { return context; }
 
-        void handleEvent(SDL_Event *evt);
+        void handleEvents(std::span<SDL_Event> events);
         void render();
 
         NuklearSdl(const NuklearSdl&) = delete;
@@ -26,6 +27,8 @@ namespace app {
         NuklearSdl& operator=(const NuklearSdl&&) = delete;
 
     private:
+        void handleEvent(const SDL_Event& evt);
+
         SDL_Window *win;
         SDL_Renderer *renderer;
         sdl::unique_ptr<TTF_Font> ttf_font;
