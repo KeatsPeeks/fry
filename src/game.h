@@ -30,7 +30,7 @@ namespace app {
         Gui gui;
 
         void handleEvents(std::span<SDL_Event> events);
-        void onLeftMouse(Point mouse);
+        void mouseEdit(Point mouse, bool alive);
 
         void update(const GameTime& gameTime);
 

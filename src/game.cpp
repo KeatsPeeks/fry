@@ -59,7 +59,9 @@ namespace app {
 
     static int displayGrid = 1;
     static const int speed = 1;
-    static const int cellSize = 12;
+    static const int cellSize = 1;
+
+    static bool step = false;
 
     Game::Game(sdl::Window* window) :
         renderer{SDL_CreateRenderer(window->getRaw(), -1, SDL_RENDERER_ACCELERATED)},
@@ -75,18 +77,19 @@ namespace app {
         for (auto event : events) {
             if (SDL_WINDOWEVENT == event.type && SDL_WINDOWEVENT_RESIZED == event.window.event) {
                 onViewportChanged();
-            }
-            if (SDL_KEYDOWN == event.type && SDL_SCANCODE_RETURN == event.key.keysym.scancode) {
-                paused = false; }
-            if (SDL_KEYDOWN == event.type && SDL_SCANCODE_B == event.key.keysym.scancode) {
-                benchmark = true;
-            }
-            if (SDL_KEYDOWN == event.type && SDL_SCANCODE_G == event.key.keysym.scancode) {
-                displayGrid = displayGrid == 0 ? 1 : 0;
-            }
-            if (SDL_MOUSEBUTTONDOWN == event.type || SDL_MOUSEMOTION == event.type) {
-                if (event.button.button == SDL_BUTTON_LEFT) {
-                    onLeftMouse({event.button.x, event.button.y});
+            } else if (SDL_MOUSEBUTTONDOWN == event.type || SDL_MOUSEMOTION == event.type) {
+                if (event.button.button == SDL_BUTTON_LEFT || event.button.button == SDL_BUTTON_RIGHT) {
+                    mouseEdit({event.button.x, event.button.y}, event.button.button == SDL_BUTTON_LEFT);
+                }
+            } else if (SDL_KEYDOWN == event.type) {
+                if (SDL_SCANCODE_SPACE == event.key.keysym.scancode) {
+                    paused = !paused;
+                } else if (SDL_SCANCODE_RIGHT == event.key.keysym.scancode) {
+                    step = true;
+                } else if (SDL_SCANCODE_B == event.key.keysym.scancode) {
+                    benchmark = true;
+                } else if (SDL_SCANCODE_G == event.key.keysym.scancode) {
+                    displayGrid = displayGrid == 0 ? 1 : 0;
                 }
             }
         }
@@ -104,20 +107,21 @@ namespace app {
                 throw std::runtime_error(message);
 //            benchmark = false;
             }
-            if (!paused) {
+            if (!paused || step) {
                 simulation.nextStep();
+                step = false;
             }
         }
     }
 
-    void Game::onLeftMouse(Point mouse) {
+    void Game::mouseEdit(Point mouse, bool alive) {
         if (paused) {
             const Size textureSize = renderer.getOutputSize();
             const Size gridSize = textureSize / cellSize;
 
             const Vector offset{(simSize - gridSize.w) / 2, (simSize - gridSize.h) / 2};
             const Point point{mouse.x / cellSize + offset.x, mouse.y / cellSize + offset.y};
-            simulation.set(point.x, point.y, true);
+            simulation.set(point.x, point.y, alive);
         }
     }
 
