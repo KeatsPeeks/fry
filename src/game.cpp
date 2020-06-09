@@ -40,13 +40,7 @@ namespace app {
         sdl::Texture createRenderTexture(const sdl::Renderer& renderer, int cellSize) {
             const Size viewport = renderer.getOutputSize();
             const Size textureSize = viewport / cellSize;
-            return sdl::Texture{SDL_CreateTexture(renderer.getRaw(), SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, textureSize.w, textureSize.h)};
-        }
-
-        std::vector<uint32_t> createPixelsMatrix(const sdl::Renderer& renderer, int cellSize) {
-            const Size viewport = renderer.getOutputSize();
-            const Size textureSize = viewport / cellSize;
-            return std::vector<uint32_t>(textureSize.w * textureSize.h);
+            return sdl::Texture{SDL_CreateTexture(renderer.getRaw(), SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, textureSize.w, textureSize.h)};
         }
     } // anonymous namespace
 
@@ -54,12 +48,9 @@ namespace app {
     static const int benchIters = 4000;
     static const auto defaultPattern = []() { return Patterns::acorn(); };
 
-    static const uint32_t ALIVE_COLOR = 0xFF0A6EDC;
-    static const uint32_t DEAD_COLOR = 0xFF808080;
-
     static int displayGrid = 1;
     static const int speed = 1;
-    static const int cellSize = 1;
+    static const int cellSize = 12;
 
     static bool step = false;
 
@@ -67,7 +58,6 @@ namespace app {
         renderer{SDL_CreateRenderer(window->getRaw(), -1, SDL_RENDERER_ACCELERATED)},
         gridTexture{createGridTexture(renderer, cellSize)},
         renderTexture{createRenderTexture(renderer, cellSize)},
-        pixels{createPixelsMatrix(renderer, cellSize)},
         simulation{simSize, defaultPattern()},
         nuklearSdl(window->getRaw(), renderer.getRaw(), "assets/Cousine-Regular.ttf", 16),
         gui(&nuklearSdl.getContext(), {&displayGrid}) {
@@ -128,7 +118,6 @@ namespace app {
     void Game::onViewportChanged() {
         gridTexture = createGridTexture(renderer, cellSize);
         renderTexture = createRenderTexture(renderer, cellSize);
-        pixels = createPixelsMatrix(renderer, cellSize);
     }
 
 
@@ -137,15 +126,22 @@ namespace app {
 
         const Size gridSize = viewport / cellSize;
         const Vector offset{(simSize - gridSize.w) / 2, (simSize - gridSize.h) / 2};
-
-        for (Point tex{}; tex.y < gridSize.h; ++tex.y) {
-            for (tex.x = 0; tex.x < gridSize.w; ++tex.x) {
-                const Point xy = tex + offset;
-                const bool alive = xy.y >= 0 && xy.x >= 0 && xy.y < simSize && xy.x < simSize && simulation.get(xy.x, xy.y);
-                pixels[tex.y * gridSize.w + tex.x] = alive ? ALIVE_COLOR : DEAD_COLOR;
+        const Simulation::TAliveList& aliveList = simulation.getAliveList();
+        std::vector<SDL_Point> pixels{};
+        std::for_each(aliveList.cbegin(), aliveList.cend(), [=,&pixels](std::pair<int, int> xy) {
+            const Point tex { xy.first - offset.x, xy.second - offset.y };
+            if (tex.x >= 0 && tex.x < gridSize.w && tex.y >= 0 && tex.y < gridSize.h) {
+                pixels.push_back({tex.x, tex.y});
             }
-        }
-        renderTexture.update(nullptr, &pixels[0], gridSize.w * SDL_BYTESPERPIXEL(SDL_PIXELFORMAT_ARGB8888));
+        });
+
+        renderer.setTarget(renderTexture.getRaw());
+        renderer.setDrawColor(DEAD_COLOR);
+       // renderer.clear();
+        SDL_RenderFillRect(renderer.getRaw(), nullptr);
+        renderer.setDrawColor(ALIVE_COLOR);
+        SDL_RenderDrawPoints(renderer.getRaw(), &pixels[0], pixels.size());
+        renderer.setTarget(nullptr);
         renderer.copy(renderTexture.getRaw(), nullptr, nullptr);
 
         if (displayGrid == 1) {

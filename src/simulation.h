@@ -22,6 +22,19 @@ namespace app {
 
     class Simulation
     {
+#ifdef ENABLE_PMR
+    public:
+        using TAliveList = std::pmr::unordered_set<std::pair<int, int>, pair_hash>;
+    private:
+        std::pmr::unsynchronized_pool_resource pool{};
+        TAliveList aliveList{&pool};
+#else
+    public:
+        using TAliveList = std::unordered_set<std::pair<size_t, size_t>, pair_hash>;
+    private:
+        TAliveList aliveList{};
+#endif
+
     public:
         explicit Simulation(int size, const std::vector<std::vector<uint8_t>>& pattern = {});
         [[nodiscard]] bool get(int x, int y) const { return matrix[y][x]; }
@@ -29,19 +42,13 @@ namespace app {
         [[nodiscard]] int getSize() const { return size; }
 
         void nextStep();
+        [[nodiscard]] const TAliveList& getAliveList() const { return aliveList; }
 
     private:
         const int size;
 
         std::vector<std::vector<bool>> matrix;
         std::vector<std::vector<bool>> matrixCopy;
-
-#ifdef ENABLE_PMR
-        std::pmr::unsynchronized_pool_resource pool{};
-        std::pmr::unordered_set<std::pair<int, int>, pair_hash> changeList{&pool};
-#else
-        std::unordered_set<std::pair<size_t, size_t>, pair_hash> changeList{};
-#endif
 
         void init(std::vector<std::vector<uint8_t>> pattern);
 

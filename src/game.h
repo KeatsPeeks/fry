@@ -21,7 +21,6 @@ namespace app {
         sdl::Renderer renderer;
         sdl::Texture gridTexture;
         sdl::Texture renderTexture;
-        std::vector<uint32_t> pixels;
         GameClock clock{};
         bool paused{true};
         bool benchmark{false};
@@ -37,7 +36,6 @@ namespace app {
         void render(const GameTime& gameTime);
 
         void onViewportChanged();
-
     };
 
 }  // namespace app

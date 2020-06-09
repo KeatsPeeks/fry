@@ -19,16 +19,16 @@ namespace app {
         }
         matrix[y][x] = alive;
         if (alive) {
-            changeList.insert(std::make_pair(x, y));
+            aliveList.insert(std::make_pair(x, y));
         }
     }
 
     void Simulation::nextStep() {
         std::copy(matrix.cbegin(), matrix.cend(), matrixCopy.begin());
 
-        std::vector<std::pair<int, int>> changeListCopy{changeList.cbegin(), changeList.cend()};
+        std::vector<std::pair<int, int>> changeListCopy{aliveList.cbegin(), aliveList.cend()};
 
-        changeList.clear();
+        aliveList.clear();
 
         for (const auto & it : changeListCopy) {
             int x = it.first;
@@ -60,7 +60,7 @@ namespace app {
         if (nbAliveNeighbours == 3) {
             alive = true; // birth
         }
-        else if (alive && nbAliveNeighbours != 2 && nbAliveNeighbours != 3) {
+        else if (alive && nbAliveNeighbours != 2) {
             alive = false; // death;
         }
         set(x, y, alive);

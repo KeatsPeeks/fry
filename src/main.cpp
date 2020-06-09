@@ -20,38 +20,6 @@ namespace {
         spdlog::flush_on(spdlog::level::critical);
     }
 
-    class GlobalInit {
-    public:
-        GlobalInit() {
-            init_loggers();
-
-            spdlog::info("Startup");
-            spdlog::info("Build {}", BUILD_VERSION);
-
-            if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-                auto msg = fmt::format("Unable to initialize SDL: {}", SDL_GetError());
-                spdlog::critical(msg);
-                throw std::runtime_error(msg);
-            }
-            if (TTF_Init() != 0) {
-                auto msg = fmt::format("Unable to initialize SDL_ttf: {}", SDL_GetError());
-                spdlog::critical(msg);
-                throw std::runtime_error(msg);
-            }
-        }
-
-        ~GlobalInit() {
-            // it's ok to call XXX_Quit even if XXX_Init has not been called
-            TTF_Quit();
-            SDL_Quit();
-        }
-
-        GlobalInit(const GlobalInit&) = delete;
-        GlobalInit& operator=(const GlobalInit&) = delete;
-        GlobalInit(GlobalInit&&) = delete;
-        GlobalInit& operator=(GlobalInit&&) = delete;
-    };
-
     std::unique_ptr<app::sdl::Window> createWindow() {
         return std::make_unique<app::sdl::Window>(SDL_CreateWindow(
                 "Sam's App",
@@ -71,7 +39,23 @@ namespace {
 
 
 int main(int /*argc*/, char** /*argv*/) {
-    GlobalInit init;
+    init_loggers();
+    spdlog::info("Startup");
+    spdlog::info("Build {}", BUILD_VERSION);
+
+
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        auto msg = fmt::format("Unable to initialize SDL: {}", SDL_GetError());
+        spdlog::critical(msg);
+        return 1;
+    }
+    std::atexit(&SDL_Quit);
+    if (TTF_Init() != 0) {
+        auto msg = fmt::format("Unable to initialize SDL_ttf: {}", SDL_GetError());
+        spdlog::critical(msg);
+        return 1;
+    }
+    std::atexit(&TTF_Quit);
 
     std::unique_ptr<app::sdl::Window> window;
     std::unique_ptr<app::Game> game;
@@ -114,6 +98,6 @@ int main(int /*argc*/, char** /*argv*/) {
         return 1;
     }
 #endif
-
+    return 0;
 }
 

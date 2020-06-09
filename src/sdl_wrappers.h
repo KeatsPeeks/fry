@@ -53,11 +53,11 @@ namespace app::sdl {
         explicit Texture(SDL_Texture* pTexture) : SdlResource(make_unique(pTexture, SDL_DestroyTexture)) {}
 
         void setBlendMode(SDL_BlendMode blendMode) const {
-            sdl::check(SDL_SetTextureBlendMode(getRaw(), blendMode));
+            check(SDL_SetTextureBlendMode(getRaw(), blendMode));
         }
 
         void update(const SDL_Rect* rect, const void* pixels, int pitch) {
-            sdl::check(SDL_UpdateTexture(getRaw(), rect, pixels, pitch));
+            check(SDL_UpdateTexture(getRaw(), rect, pixels, pitch));
         }
 
     };
@@ -99,12 +99,12 @@ namespace app::sdl {
         }
 
         void copy(SDL_Texture* texture, const SDL_Rect* srcrect, const SDL_Rect* dstrect) const {
-            SDL_RenderCopy(getRaw(), texture, srcrect, dstrect);
+            check(SDL_RenderCopy(getRaw(), texture, srcrect, dstrect));
         }
 
         [[nodiscard]] Size getOutputSize() const {
             Size p;
-            SDL_GetRendererOutputSize(getRaw(), &p.w, &p.h);
+            check(SDL_GetRendererOutputSize(getRaw(), &p.w, &p.h));
             return p;
         }
 
