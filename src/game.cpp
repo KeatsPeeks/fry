@@ -169,9 +169,10 @@ namespace app {
         gui.update(renderer.getOutputSize().w);
         // Filter mouse events when hovering the GUIb
         bool mouseOnGui = nk_window_is_any_hovered(&nuklearSdl.getContext()) != 0;
-        std::span<SDL_Event> remainingEvents{&events[0], &*std::remove_if(events.begin(), events.end(),
-                [mouseOnGui](auto& e){return isMouseEvent(e) && mouseOnGui;})};
-        handleEvents(remainingEvents);
+        const auto &iterator = std::remove_if(events.begin(), events.end(),
+                [mouseOnGui](auto &e) {return isMouseEvent(e) && mouseOnGui;});
+        events.erase(iterator, events.end());
+        handleEvents(events);
 
         // UPDATE and RENDER
         const GameTime gameTime = clock.update();

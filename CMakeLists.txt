@@ -68,7 +68,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
     if(MSVC)
         # enables code navigation on errors in CLion with clang-cl
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /diagnostics:classic")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /diagnostics:classic")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4068 /diagnostics:classic")
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU.*")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_WARNINGS} -DENABLE_PMR")
