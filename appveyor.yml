@@ -18,7 +18,7 @@ environment:
       CC: gcc-10
       APP_NAME: linux-gcc
     - job_name: MacOS-Clang
-      APPVEYOR_BUILD_WORKER_IMAGE: macOS
+      APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
       APP_NAME: macos
 
 
@@ -54,7 +54,7 @@ for:
   - # For AppVeyor's cache support on MacOS
     matrix:
       only:
-        - APPVEYOR_BUILD_WORKER_IMAGE: macOS
+        - APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
 
     init:
       - HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install p7zip
