@@ -116,8 +116,8 @@ if(MSVC)
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY output)
-file(GLOB SDL2_GFX_FILES src/SDL2_gfx/*.c)
-file(GLOB NUKLEAR_FILES src/nuklear/*.c)
+file(GLOB SDL2_GFX_FILES deps/SDL2_gfx/*.c)
+file(GLOB NUKLEAR_FILES deps/nuklear/*.c)
 set(APP_FILES
         src/clock.h
         src/colors.h

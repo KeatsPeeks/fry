@@ -1,13 +1,14 @@
 #pragma once
 
-#include "nuklear/nuklear.h"
+#include "../deps/nuklear/nuklear.h"
+#include "../deps/SDL2_gfx/SDL2_gfxPrimitives.h"
+
+#include "sdl_wrappers.h"
 
 #include <span>
 #include <string_view>
 #include <SDL2/SDL.h>
 #include <SDL_ttf/SDL_ttf.h>
-#include "SDL2_gfx/SDL2_gfxPrimitives.h"
-#include "sdl_wrappers.h"
 
 namespace app {
 

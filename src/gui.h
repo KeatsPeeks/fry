@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nuklear/nuklear.h"
+#include "../deps/nuklear/nuklear.h"
 
 namespace app {
 

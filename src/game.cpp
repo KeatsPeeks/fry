@@ -1,7 +1,10 @@
 #include "game.h"
+
+#include "../deps/nuklear/nuklear.h"
+
 #include "colors.h"
-#include "nuklear/nuklear.h"
 #include "patterns.h"
+
 #include <algorithm>
 #include <fmt/format.h>
 
