@@ -66,8 +66,7 @@ namespace app {
         bool alive = matrixCopy[y][x];
         if (nbAliveNeighbours == 3) {
             alive = true; // birth
-        }
-        else if (alive && nbAliveNeighbours != 2) {
+        } else if (alive && nbAliveNeighbours != 2) {
             alive = false; // death;
         }
         incrementalSet(x, y, alive ? CellState::ALIVE : CellState::DEAD);

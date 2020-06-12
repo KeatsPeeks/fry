@@ -102,6 +102,18 @@ namespace app::sdl {
             check(SDL_RenderCopy(getRaw(), texture, srcrect, dstrect));
         }
 
+        void fillRect(const SDL_Rect * rect) const {
+            check(SDL_RenderFillRect(getRaw(), rect));
+        }
+
+        void drawPoints(std::span<SDL_Point> points) {
+            // Weird bugs with SDL_RenderDrawPoints on the browser
+            // check(SDL_RenderDrawPoints(getRaw(), &points[0], static_cast<int>(points.size())));
+            for (auto p : points) {
+                check(SDL_RenderDrawPoint(getRaw(), p.x, p.y));
+            }
+        }
+
         [[nodiscard]] Size getOutputSize() const {
             Size p;
             check(SDL_GetRendererOutputSize(getRaw(), &p.w, &p.h));
@@ -115,6 +127,8 @@ namespace app::sdl {
         void clear() const {
             check(SDL_RenderClear(getRaw()));
         }
+
+
     };
 
-}
+} // namespace app::sdl

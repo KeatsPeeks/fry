@@ -147,11 +147,11 @@ namespace app {
 
         renderer.setTarget(renderTexture.getRaw());
         renderer.setDrawColor(DEAD_COLOR);
-       // renderer.clear();
-        SDL_RenderFillRect(renderer.getRaw(), nullptr);
+
+        renderer.fillRect(nullptr);
         if (!pixels.empty()) {
             renderer.setDrawColor(ALIVE_COLOR);
-            SDL_RenderDrawPoints(renderer.getRaw(), &pixels[0], static_cast<int>(pixels.size()));
+            renderer.drawPoints(pixels);
         }
         renderer.setTarget(nullptr);
         renderer.copy(renderTexture.getRaw(), nullptr, nullptr);
