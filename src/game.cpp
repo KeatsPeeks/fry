@@ -10,15 +10,18 @@
 namespace app {
 
     namespace {
+
         bool isMouseEvent(const SDL_Event& e) {
             return e.type == SDL_MOUSEWHEEL || e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP || e.type == SDL_MOUSEMOTION;
         }
 
-        sdl::Texture createGridTexture(const sdl::Renderer& renderer, int cellSize) {
+        sdl::Texture createRenderTexture(const sdl::Renderer& renderer, Coordinates coords) {
+            return sdl::Texture{SDL_CreateTexture(renderer.getRaw(), SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, coords.grid().w, coords.grid().h)};
+        }
 
-            const Size viewport = renderer.getOutputSize();
-            const Size textureSize{viewport.w - viewport.w % cellSize, viewport.h - viewport.h % cellSize};
-            const Size gridSize = viewport / cellSize + 1;
+        sdl::Texture createGridTexture(const sdl::Renderer& renderer, Coordinates coords) {
+            const Size textureSize{coords.window().w - coords.window().w % coords.gridCellSize(), coords.window().h - coords.window().h % coords.gridCellSize()};
+            const Size nbLines = coords.grid() + 1;
 
             sdl::Texture texture{SDL_CreateTexture(renderer.getRaw(), SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, textureSize.w, textureSize.h)};
             texture.setBlendMode(SDL_BLENDMODE_BLEND);
@@ -26,25 +29,20 @@ namespace app {
             renderer.setDrawColor(TRANSPARENT_COLOR);
             renderer.clear();
             renderer.setDrawColor(GRID_COLOR);
-            for (int y = 1; y <= gridSize.h; ++y) {
-                renderer.drawLine({0, y * cellSize}, {gridSize.w * cellSize, y * cellSize});
+            for (int y = 1; y <= nbLines.h; ++y) {
+                renderer.drawLine({0, y * coords.gridCellSize()}, {nbLines.w * coords.gridCellSize(), y * coords.gridCellSize()});
             }
-            for (int x = 1; x <= gridSize.w; ++x) {
-                renderer.drawLine({x * cellSize, 0}, {x * cellSize, gridSize.h * cellSize});
+            for (int x = 1; x <= nbLines.w; ++x) {
+                renderer.drawLine({x * coords.gridCellSize(), 0}, {x * coords.gridCellSize(), nbLines.h * coords.gridCellSize()});
             }
 
             renderer.setTarget(nullptr);
             return texture;
         }
 
-        sdl::Texture createRenderTexture(const sdl::Renderer& renderer, int cellSize) {
-            const Size viewport = renderer.getOutputSize();
-            const Size textureSize = viewport / cellSize;
-            return sdl::Texture{SDL_CreateTexture(renderer.getRaw(), SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, textureSize.w, textureSize.h)};
-        }
     } // anonymous namespace
 
-    static const int simSize = 2048;
+    static const Size simSize{2048, 2048};
     static const int benchIters = 4000;
     static const auto defaultPattern = []() { return Patterns::acorn(); };
 
@@ -56,9 +54,10 @@ namespace app {
 
     Game::Game(sdl::Window* window) :
         renderer{SDL_CreateRenderer(window->getRaw(), -1, SDL_RENDERER_ACCELERATED)},
-        gridTexture{createGridTexture(renderer, cellSize)},
-        renderTexture{createRenderTexture(renderer, cellSize)},
-        simulation{simSize, defaultPattern()},
+        coordinates(simSize, renderer.getOutputSize(), cellSize),
+        gridTexture{createGridTexture(renderer, coordinates)},
+        renderTexture{createRenderTexture(renderer, coordinates)},
+        simulation{simSize.w, defaultPattern()},
         nuklearSdl(window->getRaw(), renderer.getRaw(), "assets/Cousine-Regular.ttf", 16),
         gui(&nuklearSdl.getContext(), {&displayGrid}) {
     }
@@ -116,31 +115,24 @@ namespace app {
 
     void Game::mouseEdit(Point mouse, CellState cellState) {
         if (paused) {
-            const Size textureSize = renderer.getOutputSize();
-            const Size gridSize = textureSize / cellSize;
-
-            const Vector offset{(simSize - gridSize.w) / 2, (simSize - gridSize.h) / 2};
-            const Point point{mouse.x / cellSize + offset.x, mouse.y / cellSize + offset.y};
+            const Point point = coordinates.windowToSim(mouse);
             simulation.set(point.x, point.y, cellState);
         }
     }
 
     void Game::onViewportChanged() {
-        gridTexture = createGridTexture(renderer, cellSize);
-        renderTexture = createRenderTexture(renderer, cellSize);
+        coordinates = Coordinates{simSize, renderer.getOutputSize(), cellSize};
+        gridTexture = createGridTexture(renderer, coordinates);
+        renderTexture = createRenderTexture(renderer, coordinates);
     }
 
 
     void Game::render(const GameTime& /*gameTime*/) {
-        const Size viewport = renderer.getOutputSize();
-
-        const Size gridSize = viewport / cellSize;
-        const Vector offset{(simSize - gridSize.w) / 2, (simSize - gridSize.h) / 2};
         const Simulation::TAliveList& aliveList = simulation.getAliveCells();
         std::vector<SDL_Point> pixels{};
         std::for_each(aliveList.cbegin(), aliveList.cend(), [=,&pixels](std::pair<int, int> xy) {
-            const Point tex { xy.first - offset.x, xy.second - offset.y };
-            if (tex.x >= 0 && tex.x < gridSize.w && tex.y >= 0 && tex.y < gridSize.h) {
+            const Point tex = coordinates.simToGrid({xy.first, xy.second});
+            if (tex.x >= 0 && tex.x < coordinates.grid().w && tex.y >= 0 && tex.y < coordinates.grid().h) {
                 pixels.push_back({tex.x, tex.y});
             }
         });

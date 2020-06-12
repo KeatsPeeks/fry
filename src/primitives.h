@@ -12,9 +12,15 @@ namespace app {
         int x{};
         int y{};
     };
+    inline Vector operator/(Vector v, int d) {
+        return {v.x / d, v.y / d};
+    }
 
     inline Point operator+(Point p, Vector v) {
         return {p.x + v.x, p.y + v.y};
+    }
+    inline Point operator-(Point p, Vector v) {
+        return {p.x - v.x, p.y - v.y};
     }
     inline Point operator+(Vector v, Point p) {
         return p + v;
