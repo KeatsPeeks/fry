@@ -3,6 +3,7 @@
 #include "primitives.h"
 #include <SDL2/SDL.h>
 #include <memory>
+#include <span>
 #include <stdexcept>
 
 namespace app::sdl {
@@ -79,6 +80,10 @@ namespace app::sdl {
 
         void setSize(int w, int h) {
             SDL_SetWindowSize(getRaw(), w, h);
+        }
+
+        void showSimpleMessageBox(Uint32 flags, const char* title, const char* message) {
+            check(SDL_ShowSimpleMessageBox(flags, title, message, getRaw()));
         }
     };
 

@@ -46,6 +46,7 @@ namespace app {
         bool mainLoop();
 
     private:
+        sdl::Window* window;
         sdl::Renderer renderer;
         Coordinates coordinates;
         sdl::Texture gridTexture;

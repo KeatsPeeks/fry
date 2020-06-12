@@ -56,6 +56,7 @@ namespace app {
     static bool step = false;
 
     Game::Game(sdl::Window* window) :
+        window{window},
         renderer{SDL_CreateRenderer(window->getRaw(), -1, SDL_RENDERER_ACCELERATED)},
         coordinates(simSize, renderer.getOutputSize(), cellSize),
         gridTexture{createGridTexture(renderer, coordinates)},
@@ -100,14 +101,16 @@ namespace app {
     void Game::update(const GameTime& /*gameTime*/) {
         for (int i = 0; i< speed; ++i) {
             if (benchmark) {
+                Simulation backup = simulation;
                 clock.update();
                 for (int j = 0; j < benchIters; j++) {
                     simulation.nextStep();
                 }
                 const GameTime gameTime = clock.update();
                 const auto message = fmt::format("{} iterations per second", std::lround(benchIters / gameTime.elapsedTime.count()));
-                throw std::runtime_error(message);
-//            benchmark = false;
+                window->showSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Benchmark results", message.c_str());
+                benchmark = false;
+                simulation = backup;
             }
             if (!paused || step) {
                 simulation.nextStep();

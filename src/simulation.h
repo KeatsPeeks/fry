@@ -24,15 +24,13 @@ namespace app {
         }
     };
 
-    const static int BUF_SIZE = 1024;
-
     class Simulation
     {
 #ifdef ENABLE_PMR
     public:
         using TAliveList = std::pmr::unordered_set<std::pair<int, int>, pair_hash>;
     private:
-        std::pmr::unsynchronized_pool_resource pool{};
+        static std::pmr::unsynchronized_pool_resource pool;
         TAliveList aliveList{&pool};
 #else
     public:
@@ -43,6 +41,7 @@ namespace app {
 
     public:
         explicit Simulation(int size, const std::vector<std::vector<uint8_t>>& pattern = {});
+
         [[nodiscard]] bool get(int x, int y) const { return matrix[y][x]; }
         void set(int x, int y, CellState cellState);
         [[nodiscard]] int getSize() const { return size; }
@@ -51,7 +50,7 @@ namespace app {
         [[nodiscard]] const TAliveList& getAliveCells() const { return aliveList; }
 
     private:
-        const int size;
+        int size;
 
         std::vector<std::vector<bool>> matrix;
         std::vector<std::vector<bool>> matrixCopy;
