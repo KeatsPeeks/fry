@@ -13,12 +13,19 @@ namespace app {
         matrixCopy = matrix;
     }
 
-    void Simulation::set(int x, int y, bool alive) {
+    void Simulation::set(int x, int y, CellState cellState) {
+        incrementalSet(x, y, cellState);
+        if (cellState == CellState::DEAD) {
+            aliveList.erase(std::make_pair(x, y));
+        }
+    }
+
+    void Simulation::incrementalSet(int x, int y, CellState cellState) {
         if (x <= 1 || y <= 1 || x >= size - 2 || y >= size - 2) {
             return;
         }
-        matrix[y][x] = alive;
-        if (alive) {
+        matrix[y][x] = cellState == CellState::ALIVE;
+        if (cellState == CellState::ALIVE) {
             aliveList.insert(std::make_pair(x, y));
         }
     }
@@ -63,7 +70,7 @@ namespace app {
         else if (alive && nbAliveNeighbours != 2) {
             alive = false; // death;
         }
-        set(x, y, alive);
+        incrementalSet(x, y, alive ? CellState::ALIVE : CellState::DEAD);
     }
 
     void Simulation::init(std::vector<std::vector<uint8_t>> pattern) {
@@ -74,7 +81,7 @@ namespace app {
             int width = static_cast<int>(row.size());
             const int xOffset = (size - width) / 2;
             for (int x = 0; x < width; ++x) {
-                set(x + xOffset, y + yOffset, row[x] == 1);
+                set(x + xOffset, y + yOffset, row[x] == 1 ? CellState::ALIVE : CellState::DEAD);
             }
         }
     }

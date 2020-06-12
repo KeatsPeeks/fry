@@ -8,6 +8,7 @@
 
 #pragma warning(push, 1)
 #pragma warning(disable: 4701)
+#pragma warning(disable: 4068)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
 #include "nuklear_lib.h"

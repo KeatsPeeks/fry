@@ -64,13 +64,20 @@ namespace app {
     }
 
     void Game::handleEvents(std::span<SDL_Event> events) {
+        bool left = false;
+        bool right = false;
+        Point mouse;
         for (auto event : events) {
             if (SDL_WINDOWEVENT == event.type && SDL_WINDOWEVENT_RESIZED == event.window.event) {
                 onViewportChanged();
-            } else if (SDL_MOUSEBUTTONDOWN == event.type || SDL_MOUSEMOTION == event.type) {
-                if (event.button.button == SDL_BUTTON_LEFT || event.button.button == SDL_BUTTON_RIGHT) {
-                    mouseEdit({event.button.x, event.button.y}, event.button.button == SDL_BUTTON_LEFT);
-                }
+            } else if (SDL_MOUSEBUTTONDOWN == event.type) {
+                left = event.button.button == SDL_BUTTON_LEFT;
+                right = event.button.button == SDL_BUTTON_RIGHT;
+                mouse = {event.button.x, event.button.y};
+            } else if (SDL_MOUSEMOTION == event.type) {
+                left = 0 != (event.motion.state & SDL_BUTTON(SDL_BUTTON_LEFT));
+                right = 0 != (event.motion.state & SDL_BUTTON(SDL_BUTTON_RIGHT));
+                mouse = {event.motion.x, event.motion.y};
             } else if (SDL_KEYDOWN == event.type) {
                 if (SDL_SCANCODE_SPACE == event.key.keysym.scancode) {
                     paused = !paused;
@@ -82,6 +89,9 @@ namespace app {
                     displayGrid = displayGrid == 0 ? 1 : 0;
                 }
             }
+        }
+        if (left != right) {
+            mouseEdit(mouse, left ? CellState::ALIVE : CellState::DEAD);
         }
     }
 
@@ -104,14 +114,14 @@ namespace app {
         }
     }
 
-    void Game::mouseEdit(Point mouse, bool alive) {
+    void Game::mouseEdit(Point mouse, CellState cellState) {
         if (paused) {
             const Size textureSize = renderer.getOutputSize();
             const Size gridSize = textureSize / cellSize;
 
             const Vector offset{(simSize - gridSize.w) / 2, (simSize - gridSize.h) / 2};
             const Point point{mouse.x / cellSize + offset.x, mouse.y / cellSize + offset.y};
-            simulation.set(point.x, point.y, alive);
+            simulation.set(point.x, point.y, cellState);
         }
     }
 
@@ -126,7 +136,7 @@ namespace app {
 
         const Size gridSize = viewport / cellSize;
         const Vector offset{(simSize - gridSize.w) / 2, (simSize - gridSize.h) / 2};
-        const Simulation::TAliveList& aliveList = simulation.getAliveList();
+        const Simulation::TAliveList& aliveList = simulation.getAliveCells();
         std::vector<SDL_Point> pixels{};
         std::for_each(aliveList.cbegin(), aliveList.cend(), [=,&pixels](std::pair<int, int> xy) {
             const Point tex { xy.first - offset.x, xy.second - offset.y };
@@ -139,8 +149,10 @@ namespace app {
         renderer.setDrawColor(DEAD_COLOR);
        // renderer.clear();
         SDL_RenderFillRect(renderer.getRaw(), nullptr);
-        renderer.setDrawColor(ALIVE_COLOR);
-        SDL_RenderDrawPoints(renderer.getRaw(), &pixels[0], pixels.size());
+        if (!pixels.empty()) {
+            renderer.setDrawColor(ALIVE_COLOR);
+            SDL_RenderDrawPoints(renderer.getRaw(), &pixels[0], static_cast<int>(pixels.size()));
+        }
         renderer.setTarget(nullptr);
         renderer.copy(renderTexture.getRaw(), nullptr, nullptr);
 

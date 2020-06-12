@@ -9,6 +9,12 @@
 #endif
 
 namespace app {
+
+    enum class CellState {
+        DEAD,
+        ALIVE
+    };
+
     struct pair_hash
     {
         template <class T1, class T2>
@@ -38,11 +44,11 @@ namespace app {
     public:
         explicit Simulation(int size, const std::vector<std::vector<uint8_t>>& pattern = {});
         [[nodiscard]] bool get(int x, int y) const { return matrix[y][x]; }
-        void set(int x, int y, bool alive);
+        void set(int x, int y, CellState cellState);
         [[nodiscard]] int getSize() const { return size; }
 
         void nextStep();
-        [[nodiscard]] const TAliveList& getAliveList() const { return aliveList; }
+        [[nodiscard]] const TAliveList& getAliveCells() const { return aliveList; }
 
     private:
         const int size;
@@ -53,6 +59,8 @@ namespace app {
         void init(std::vector<std::vector<uint8_t>> pattern);
 
         void updateCell(int x, int y);
+
+        void incrementalSet(int x, int y, CellState cellState);
     };
 
 }  // namespace app
