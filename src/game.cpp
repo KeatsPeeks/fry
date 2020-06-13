@@ -57,6 +57,8 @@ namespace app {
 
     Game::Game(sdl::Window* window) :
         window{window},
+        cursor{SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR)},
+        guiCursor{SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW)},
         renderer{SDL_CreateRenderer(window->getRaw(), -1, SDL_RENDERER_ACCELERATED)},
         coordinates(simSize, renderer.getOutputSize(), cellSize),
         gridTexture{createGridTexture(renderer, coordinates)},
@@ -66,11 +68,14 @@ namespace app {
         gui(&nuklearSdl.getContext(), {&displayGrid}) {
     }
 
-    void Game::handleEvents(std::span<SDL_Event> events) {
+    void Game::handleEvents(std::span<SDL_Event> events, bool mouseOnGui) {
         bool left = false;
         bool right = false;
         Point mouse;
         for (auto event : events) {
+            if (isMouseEvent(event) && mouseOnGui) {
+                continue;
+            }
             if (SDL_WINDOWEVENT == event.type && SDL_WINDOWEVENT_RESIZED == event.window.event) {
                 onViewportChanged();
             } else if (SDL_MOUSEBUTTONDOWN == event.type) {
@@ -95,6 +100,11 @@ namespace app {
         }
         if (left != right) {
             mouseEdit(mouse, left ? CellState::ALIVE : CellState::DEAD);
+        }
+        if (mouseOnGui) {
+            guiCursor.set();
+        } else {
+            cursor.set();
         }
     }
 
@@ -165,7 +175,6 @@ namespace app {
     bool Game::mainLoop() {
         // EVENTS
 
-        // First, gather all SDL events
         std::vector<SDL_Event> events;
         for (SDL_Event event; SDL_PollEvent(&event) != 0;) {
             if (SDL_QUIT == event.type) {
@@ -173,16 +182,10 @@ namespace app {
             }
             events.push_back(event);
         }
-        // Pass them to the GUI engine
         nuklearSdl.handleEvents(events);
-        // Now the GUIs can be updated (and alter the state)
         gui.update(renderer.getOutputSize().w);
-        // Filter mouse events when hovering the GUIb
         bool mouseOnGui = nk_window_is_any_hovered(&nuklearSdl.getContext()) != 0;
-        const auto &iterator = std::remove_if(events.begin(), events.end(),
-                [mouseOnGui](auto &e) {return isMouseEvent(e) && mouseOnGui;});
-        events.erase(iterator, events.end());
-        handleEvents(events);
+        handleEvents(events, mouseOnGui);
 
         // UPDATE and RENDER
         const GameTime gameTime = clock.update();

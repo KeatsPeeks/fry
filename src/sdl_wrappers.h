@@ -68,6 +68,13 @@ namespace app::sdl {
         explicit Surface(SDL_Surface* pSurface) : SdlResource(make_unique(pSurface, SDL_FreeSurface)) {}
     };
 
+    class Cursor : public SdlResource<SDL_Cursor> {
+    public:
+        explicit Cursor(SDL_Cursor* pCursor) : SdlResource(make_unique(pCursor, SDL_FreeCursor)) {}
+
+        void set() { SDL_SetCursor(getRaw()); }
+    };
+
     class Window : public SdlResource<SDL_Window> {
     public:
         explicit Window(SDL_Window* pWindow) : SdlResource(make_unique(pWindow, SDL_DestroyWindow)) {}

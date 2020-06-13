@@ -47,6 +47,8 @@ namespace app {
 
     private:
         sdl::Window* window;
+        sdl::Cursor cursor;
+        sdl::Cursor guiCursor;
         sdl::Renderer renderer;
         Coordinates coordinates;
         sdl::Texture gridTexture;
@@ -58,7 +60,7 @@ namespace app {
         NuklearSdl nuklearSdl;
         Gui gui;
 
-        void handleEvents(std::span<SDL_Event> events);
+        void handleEvents(std::span<SDL_Event> events, bool mouseOnGui);
         void mouseEdit(Point mouse, CellState state);
 
         void update(const GameTime& gameTime);
