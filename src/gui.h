@@ -6,6 +6,7 @@ namespace app {
 
     struct GuiBindings {
         int* displayGrid;
+        int* speed;
     };
 
     class Gui {

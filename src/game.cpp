@@ -8,11 +8,14 @@
 #include <algorithm>
 #include <fmt/format.h>
 
-//#include "nuklear/overview.c"
-
 namespace app {
 
     namespace {
+
+        constexpr Size simSize{2048, 2048};
+        constexpr int benchIters = 4000;
+        constexpr auto defaultPattern = []() { return Patterns::acorn(); };
+        constexpr double minFps = 45.;
 
         bool isMouseEvent(const SDL_Event& e) {
             return e.type == SDL_MOUSEWHEEL || e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP || e.type == SDL_MOUSEMOTION;
@@ -45,25 +48,6 @@ namespace app {
 
     } // anonymous namespace
 
-    static const Size simSize{2048, 2048};
-    static const int benchIters = 4000;
-    static const auto defaultPattern = []() { return Patterns::acorn(); };
-
-    static int displayGrid = 1;
-    static double updateDelay = 1./8.;
-    static const double minFps = 45.;
-    static int cellSize = 12;
-
-    static bool step = false;
-
-    // options:
-    // - display grid (GUI / G)
-    // actions:
-    // - next (flèche)
-    // - play/pause (space)
-    // - benchmark (B)
-    // - zoom (mwheel)
-
     Game::Game(sdl::Window* window) :
         window{window},
         cursor{SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR)},
@@ -74,7 +58,7 @@ namespace app {
         renderTexture{createRenderTexture(renderer, coordinates)},
         simulation{simSize.w, defaultPattern()},
         nuklearSdl(window->getRaw(), renderer.getRaw(), "assets/Cousine-Regular.ttf", 16),
-        gui(&nuklearSdl.getContext(), {&displayGrid})
+        gui(&nuklearSdl.getContext(), {&displayGrid, &updateSpeedPower})
     {
         resetSimClock();
     }
@@ -125,9 +109,9 @@ namespace app {
                     } else if (SDL_SCANCODE_G == scancode) {
                         displayGrid = displayGrid == 0 ? 1 : 0;
                     } else if (SDL_SCANCODE_UP == scancode) {
-                        updateDelay = std::max(1./1024., updateDelay / 2.);
+                        updateSpeedPower = std::min(10, updateSpeedPower + 1);
                     } else if (SDL_SCANCODE_DOWN == scancode) {
-                        updateDelay = std::min(1., updateDelay * 2.);
+                        updateSpeedPower = std::max(0, updateSpeedPower - 1);
                     }
                 } break;
 
@@ -172,14 +156,12 @@ namespace app {
         }
 
         GameTime time = simClock.update();
-        if (!paused) {
-            while (time.totalTime.count() >= nextSimUpdate) {
-                simulation.nextStep();
-                nextSimUpdate += updateDelay;
-                if (minFpsClock.update().totalTime.count() > 1. / minFps) {
-                    // frame time is too large => throttle
-                    break;
-                }
+        while (time.totalTime.count() >= nextSimUpdate) {
+            simulation.nextStep();
+            nextSimUpdate += 1. / (1 << updateSpeedPower);
+            if (minFpsClock.update().totalTime.count() > 1. / minFps) {
+                // frame time is too large => throttle
+                break;
             }
         }
         minFpsClock = GameClock{};
@@ -188,7 +170,7 @@ namespace app {
 
     void Game::resetSimClock() {
         simClock = GameClock{};
-        nextSimUpdate = updateDelay;
+        nextSimUpdate = 1. / (1 << updateSpeedPower);
     }
 
     void Game::mouseEdit(Point mouse, CellState cellState) {
@@ -203,7 +185,6 @@ namespace app {
         gridTexture = createGridTexture(renderer, coordinates);
         renderTexture = createRenderTexture(renderer, coordinates);
     }
-
 
     void Game::render() {
         const Simulation::TAliveList& aliveList = simulation.getAliveCells();
@@ -236,7 +217,6 @@ namespace app {
 
     bool Game::mainLoop() {
         // EVENTS
-
         std::vector<SDL_Event> events;
         for (SDL_Event event; SDL_PollEvent(&event) != 0;) {
             if (SDL_QUIT == event.type) {

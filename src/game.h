@@ -46,6 +46,21 @@ namespace app {
         bool mainLoop();
 
     private:
+        // time
+        GameClock simClock{};
+        GameClock minFpsClock{};
+        double nextSimUpdate{};
+
+        // actions
+        bool paused{true};
+        bool benchmark{false};
+        bool step{false};
+
+        // options
+        int displayGrid{1};
+        int updateSpeedPower{3};
+        int cellSize{12};
+
         sdl::Window* window;
         sdl::Cursor cursor;
         sdl::Cursor guiCursor;
@@ -53,16 +68,12 @@ namespace app {
         Coordinates coordinates;
         sdl::Texture gridTexture;
         sdl::Texture renderTexture;
-        bool paused{true};
-        bool benchmark{false};
         Simulation simulation;
         NuklearSdl nuklearSdl;
         Gui gui;
-        GameClock simClock{};
-        GameClock minFpsClock{};
-        double nextSimUpdate{};
 
         void handleEvents(std::span<SDL_Event> events, bool mouseOnGui);
+
         void mouseEdit(Point mouse, CellState state);
 
         void update();

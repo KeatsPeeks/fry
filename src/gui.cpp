@@ -1,6 +1,11 @@
 #include "gui.h"
+
 #include "primitives.h"
+
 #include <array>
+#include <string>
+
+#include <fmt/format.h>
 
 namespace app {
 
@@ -43,6 +48,10 @@ namespace app {
         table[NK_COLOR_TOGGLE] = table[NK_COLOR_WINDOW];
         table[NK_COLOR_TOGGLE_HOVER] = table[NK_COLOR_WINDOW];
         table[NK_COLOR_TOGGLE_CURSOR] = nk_rgba(10, 110, 220, 255);
+        table[NK_COLOR_SLIDER] = table[NK_COLOR_HEADER];
+        table[NK_COLOR_SLIDER_CURSOR] = table[NK_COLOR_TOGGLE_CURSOR];
+        table[NK_COLOR_SLIDER_CURSOR_HOVER] = table[NK_COLOR_TOGGLE_CURSOR];
+        table[NK_COLOR_SLIDER_CURSOR_ACTIVE] = table[NK_COLOR_TOGGLE_CURSOR];
         nk_style_from_table(pNuklearCtx, &table[0]);
 
         pNuklearCtx->style.checkbox.padding = nk_vec2(2, 2);
@@ -54,13 +63,28 @@ namespace app {
         pNuklearCtx->style.checkbox.spacing = 10;
     }
 
+    static const int minSpeed = 0;
+    static const int maxSpeed = 10;
+
     void Gui::update(int viewPortWidth) {
         constexpr int margin = 12;
         constexpr Size panelSize{230, 250};
         Rect panelRect{{viewPortWidth - panelSize.w - margin, margin}, panelSize};
         if (0 != nk_begin(pNuklearCtx, "Controls", to_nk_rect(panelRect), NK_WINDOW_MINIMIZABLE | NK_WINDOW_TITLE)) {
+            
+            // Grid checkbox
             nk_layout_row_dynamic(pNuklearCtx, 0, 1);
             nk_checkbox_label(pNuklearCtx, "show grid", bindings.displayGrid);
+
+            // Speed slider
+            nk_layout_row_dynamic(pNuklearCtx, 16, 1);
+            nk_label(pNuklearCtx, "Speed:", NK_TEXT_ALIGN_LEFT);
+            nk_layout_row_dynamic(pNuklearCtx, 16, 1);
+            nk_slider_int(pNuklearCtx, minSpeed, bindings.speed, maxSpeed, 1);
+            nk_layout_row_dynamic(pNuklearCtx, 0, 3);
+            nk_label(pNuklearCtx, fmt::to_string(minSpeed).c_str(), NK_TEXT_ALIGN_LEFT | NK_TEXT_ALIGN_TOP);
+            nk_label(pNuklearCtx, fmt::to_string(*bindings.speed).c_str(), NK_TEXT_ALIGN_CENTERED | NK_TEXT_ALIGN_TOP);
+            nk_label(pNuklearCtx, fmt::to_string(maxSpeed).c_str(), NK_TEXT_ALIGN_RIGHT | NK_TEXT_ALIGN_TOP);
         }
         nk_end(pNuklearCtx);
     }
