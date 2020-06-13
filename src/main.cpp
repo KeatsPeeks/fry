@@ -9,6 +9,17 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
 
+#if defined(WIN32) || defined(_WIN32)
+
+// Force dedicated GPU on laptops
+extern "C" {
+    __declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
+    __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+
+#endif // WIN32
+
+
 namespace {
 
     constexpr int DEFAULT_WIDTH{1024};
