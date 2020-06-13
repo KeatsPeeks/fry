@@ -67,7 +67,7 @@ namespace app {
 
         void render(const GameTime& gameTime);
 
-        void onViewportChanged();
+        void onCoordinatesChanged();
     };
 
 }  // namespace app

@@ -40,7 +40,9 @@ namespace app {
 #endif
 
     public:
-        explicit Simulation(int size, const std::vector<std::vector<uint8_t>>& pattern = {});
+        using TPattern = std::vector<std::vector<uint8_t>>;
+
+        explicit Simulation(int size, const TPattern& pattern = {});
 
         [[nodiscard]] bool get(int x, int y) const { return matrix[y][x]; }
         void set(int x, int y, CellState cellState);

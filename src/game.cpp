@@ -29,9 +29,9 @@ namespace app {
             sdl::Texture texture{SDL_CreateTexture(renderer.getRaw(), SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, textureSize.w, textureSize.h)};
             texture.setBlendMode(SDL_BLENDMODE_BLEND);
             renderer.setTarget(texture.getRaw());
-            renderer.setDrawColor(TRANSPARENT_COLOR);
+            renderer.setDrawColor(Color::Transparent);
             renderer.clear();
-            renderer.setDrawColor(GRID_COLOR);
+            renderer.setDrawColor(Color::Grid);
             for (int y = 1; y <= nbLines.h; ++y) {
                 renderer.drawLine({0, y * coords.gridCellSize()}, {nbLines.w * coords.gridCellSize(), y * coords.gridCellSize()});
             }
@@ -51,9 +51,17 @@ namespace app {
 
     static int displayGrid = 1;
     static const int speed = 1;
-    static const int cellSize = 12;
+    static int cellSize = 12;
 
     static bool step = false;
+
+    // options:
+    // - display grid (GUI / G)
+    // actions:
+    // - next (flèche)
+    // - play/pause (space)
+    // - benchmark (B)
+    // - zoom (mwheel)
 
     Game::Game(sdl::Window* window) :
         window{window},
@@ -76,26 +84,47 @@ namespace app {
             if (isMouseEvent(event) && mouseOnGui) {
                 continue;
             }
-            if (SDL_WINDOWEVENT == event.type && SDL_WINDOWEVENT_RESIZED == event.window.event) {
-                onViewportChanged();
-            } else if (SDL_MOUSEBUTTONDOWN == event.type) {
-                left = event.button.button == SDL_BUTTON_LEFT;
-                right = event.button.button == SDL_BUTTON_RIGHT;
-                mouse = {event.button.x, event.button.y};
-            } else if (SDL_MOUSEMOTION == event.type) {
-                left = 0 != (event.motion.state & SDL_BUTTON(SDL_BUTTON_LEFT));
-                right = 0 != (event.motion.state & SDL_BUTTON(SDL_BUTTON_RIGHT));
-                mouse = {event.motion.x, event.motion.y};
-            } else if (SDL_KEYDOWN == event.type) {
-                if (SDL_SCANCODE_SPACE == event.key.keysym.scancode) {
-                    paused = !paused;
-                } else if (SDL_SCANCODE_RIGHT == event.key.keysym.scancode) {
-                    step = true;
-                } else if (SDL_SCANCODE_B == event.key.keysym.scancode) {
-                    benchmark = true;
-                } else if (SDL_SCANCODE_G == event.key.keysym.scancode) {
-                    displayGrid = displayGrid == 0 ? 1 : 0;
-                }
+
+            switch (event.type) {
+                case SDL_WINDOWEVENT:
+                    if (SDL_WINDOWEVENT_RESIZED == event.window.event) {
+                        onCoordinatesChanged();
+                    }
+                    break;
+
+                case SDL_MOUSEWHEEL:
+                    if (event.wheel.y != 0) {
+                        cellSize = std::max(1, cellSize + (event.wheel.y > 0 ? 1 : -1));
+                        onCoordinatesChanged();
+                    }
+                    break;
+
+                case SDL_MOUSEBUTTONDOWN:
+                    left = event.button.button == SDL_BUTTON_LEFT;
+                    right = event.button.button == SDL_BUTTON_RIGHT;
+                    mouse = {event.button.x, event.button.y};
+                    break;
+
+                case SDL_MOUSEMOTION:
+                    left = 0 != (event.motion.state & SDL_BUTTON(SDL_BUTTON_LEFT));
+                    right = 0 != (event.motion.state & SDL_BUTTON(SDL_BUTTON_RIGHT));
+                    mouse = {event.motion.x, event.motion.y};
+                    break;
+
+                case SDL_KEYDOWN:
+                    if (SDL_SCANCODE_SPACE == event.key.keysym.scancode) {
+                        paused = !paused;
+                    } else if (SDL_SCANCODE_RIGHT == event.key.keysym.scancode) {
+                        step = true;
+                    } else if (SDL_SCANCODE_B == event.key.keysym.scancode) {
+                        benchmark = true;
+                    } else if (SDL_SCANCODE_G == event.key.keysym.scancode) {
+                        displayGrid = displayGrid == 0 ? 1 : 0;
+                    }
+                    break;
+
+                default:
+                    break;
             }
         }
         if (left != right) {
@@ -136,7 +165,7 @@ namespace app {
         }
     }
 
-    void Game::onViewportChanged() {
+    void Game::onCoordinatesChanged() {
         coordinates = Coordinates{simSize, renderer.getOutputSize(), cellSize};
         gridTexture = createGridTexture(renderer, coordinates);
         renderTexture = createRenderTexture(renderer, coordinates);
@@ -154,11 +183,11 @@ namespace app {
         });
 
         renderer.setTarget(renderTexture.getRaw());
-        renderer.setDrawColor(DEAD_COLOR);
+        renderer.setDrawColor(Color::DeadCell);
 
         renderer.fillRect(nullptr);
         if (!pixels.empty()) {
-            renderer.setDrawColor(ALIVE_COLOR);
+            renderer.setDrawColor(Color::AliveCell);
             renderer.drawPoints(pixels);
         }
         renderer.setTarget(nullptr);

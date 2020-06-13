@@ -1,15 +1,16 @@
 #include <vector>
+#include "simulation.h"
 
 namespace app {
     struct Patterns {
-        static std::vector<std::vector<uint8_t>> acorn() {
+        static Simulation::TPattern acorn() {
             return {
                     { 0, 1, 0, 0, 0, 0, 0 },
                     { 0, 0, 0, 1, 0, 0, 0 },
                     { 1, 1, 0, 0, 1, 1, 1 },
             };
         }
-        static std::vector<std::vector<uint8_t>> infinite() {
+        static Simulation::TPattern infinite() {
             return {
                     {
                             1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1
@@ -17,7 +18,7 @@ namespace app {
             };
         }
 
-        static std::vector<std::vector<uint8_t>> infinite2() {
+        static Simulation::TPattern infinite2() {
             return {
                     {
                             1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
