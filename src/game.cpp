@@ -58,7 +58,7 @@ namespace app {
         renderTexture{createRenderTexture(renderer, coordinates)},
         simulation{simSize.w, defaultPattern()},
         nuklearSdl(window->getRaw(), renderer.getRaw(), "assets/Cousine-Regular.ttf", 16),
-        gui(&nuklearSdl.getContext(), {&displayGrid, &updateSpeedPower})
+        gui(&nuklearSdl.getContext(), {&displayGrid, &updateSpeedPower, &paused})
     {
         resetSimClock();
     }
