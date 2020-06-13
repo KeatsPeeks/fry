@@ -58,7 +58,7 @@ namespace app {
         renderTexture{createRenderTexture(renderer, coordinates)},
         simulation{simSize.w, defaultPattern()},
         nuklearSdl(window->getRaw(), renderer.getRaw(), "assets/Cousine-Regular.ttf", 16),
-        gui(&nuklearSdl.getContext(), {&displayGrid, &updateSpeedPower, &paused})
+        gui(&nuklearSdl.getContext(), {&displayGrid, &updateSpeedPower, &paused, &cellSize})
     {
         resetSimClock();
     }
@@ -81,8 +81,7 @@ namespace app {
 
                 case SDL_MOUSEWHEEL: {
                     if (event.wheel.y != 0) {
-                        cellSize = std::max(1, cellSize + (event.wheel.y > 0 ? 1 : -1));
-                        onCoordinatesChanged();
+                        cellSize = std::min(32, std::max(1, cellSize + (event.wheel.y > 0 ? 1 : -1)));
                     }
                 } break;
 
@@ -118,6 +117,9 @@ namespace app {
                 default:
                     break;
             }
+        }
+        if (coordinates.gridCellSize() != cellSize) {
+            onCoordinatesChanged();
         }
         if (left != right) {
             mouseEdit(mouse, left ? CellState::ALIVE : CellState::DEAD);

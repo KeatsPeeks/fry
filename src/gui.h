@@ -8,6 +8,7 @@ namespace app {
         int* displayGrid;
         int* speed;
         bool* paused;
+        int* cellSize;
     };
 
     class Gui {

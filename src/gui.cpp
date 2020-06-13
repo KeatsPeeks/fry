@@ -75,6 +75,8 @@ namespace app {
 
     static const int minSpeed = 0;
     static const int maxSpeed = 10;
+    static const int minCellSize = 1;
+    static const int maxCellSize = 32;
 
     void Gui::update(int viewPortWidth) {
         constexpr Size margin{-7, 0};
@@ -84,15 +86,14 @@ namespace app {
             nk_layout_row_dynamic(pNuklearCtx, 8, 1);
 
             // Play/Pause button
-            nk_layout_row_dynamic(pNuklearCtx, 40, 1);
-            const char* text = *bindings.paused ? "Play" : "Pause";
-            nk_symbol_type symbol = *bindings.paused ? NK_SYMBOL_TRIANGLE_RIGHT : NK_SYMBOL_X;
-            if (1 == nk_button_symbol_label(pNuklearCtx, symbol, text, NK_TEXT_ALIGN_RIGHT)) {
+            nk_layout_row_dynamic(pNuklearCtx, 0, 1);
+            const char* text = *bindings.paused ? "Run" : "Pause";
+            if (1 == nk_button_label(pNuklearCtx, text)) {
                 *bindings.paused = !*bindings.paused;
             }
 
             // Grid checkbox
-            nk_layout_row_dynamic(pNuklearCtx, 40, 1);
+            nk_layout_row_dynamic(pNuklearCtx, 50, 1);
             nk_checkbox_label(pNuklearCtx, "show grid", bindings.displayGrid);
 
             // Speed slider
@@ -100,8 +101,16 @@ namespace app {
             nk_label(pNuklearCtx, "Speed:", NK_TEXT_ALIGN_LEFT);
             nk_layout_row_dynamic(pNuklearCtx, 16, 1);
             nk_slider_int(pNuklearCtx, minSpeed, bindings.speed, maxSpeed, 1);
-            nk_layout_row_dynamic(pNuklearCtx, 0, 1);
+            nk_layout_row_dynamic(pNuklearCtx, 24, 1);
             nk_label(pNuklearCtx, fmt::format("{} ups", 1 << *bindings.speed).c_str(), NK_TEXT_ALIGN_CENTERED | NK_TEXT_ALIGN_TOP);
+
+            // Size slider
+            nk_layout_row_dynamic(pNuklearCtx, 20, 1);
+            nk_label(pNuklearCtx, "Cell size:", NK_TEXT_ALIGN_LEFT);
+            nk_layout_row_dynamic(pNuklearCtx, 16, 1);
+            nk_slider_int(pNuklearCtx, minCellSize, bindings.cellSize, maxCellSize, 1);
+            nk_layout_row_dynamic(pNuklearCtx, 0, 1);
+            nk_label(pNuklearCtx, fmt::format("{} px", *bindings.cellSize).c_str(), NK_TEXT_ALIGN_CENTERED | NK_TEXT_ALIGN_TOP);
         }
         nk_end(pNuklearCtx);
     }
