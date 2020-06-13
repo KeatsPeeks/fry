@@ -23,7 +23,7 @@ namespace app {
         }
 
     private:
-        const time_point<steady_clock> epoch{steady_clock::now()};
+        time_point<steady_clock> epoch{steady_clock::now()};
         time_point<steady_clock> last{steady_clock::now()};
     };
 

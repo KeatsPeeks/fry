@@ -50,7 +50,8 @@ namespace app {
     static const auto defaultPattern = []() { return Patterns::acorn(); };
 
     static int displayGrid = 1;
-    static const int speed = 1;
+    static double updateDelay = 1./8.;
+    static const double minFps = 45.;
     static int cellSize = 12;
 
     static bool step = false;
@@ -73,7 +74,9 @@ namespace app {
         renderTexture{createRenderTexture(renderer, coordinates)},
         simulation{simSize.w, defaultPattern()},
         nuklearSdl(window->getRaw(), renderer.getRaw(), "assets/Cousine-Regular.ttf", 16),
-        gui(&nuklearSdl.getContext(), {&displayGrid}) {
+        gui(&nuklearSdl.getContext(), {&displayGrid})
+    {
+        resetSimClock();
     }
 
     void Game::handleEvents(std::span<SDL_Event> events, bool mouseOnGui) {
@@ -86,42 +89,47 @@ namespace app {
             }
 
             switch (event.type) {
-                case SDL_WINDOWEVENT:
+                case SDL_WINDOWEVENT: {
                     if (SDL_WINDOWEVENT_RESIZED == event.window.event) {
                         onCoordinatesChanged();
                     }
-                    break;
+                } break;
 
-                case SDL_MOUSEWHEEL:
+                case SDL_MOUSEWHEEL: {
                     if (event.wheel.y != 0) {
                         cellSize = std::max(1, cellSize + (event.wheel.y > 0 ? 1 : -1));
                         onCoordinatesChanged();
                     }
-                    break;
+                } break;
 
-                case SDL_MOUSEBUTTONDOWN:
+                case SDL_MOUSEBUTTONDOWN: {
                     left = event.button.button == SDL_BUTTON_LEFT;
                     right = event.button.button == SDL_BUTTON_RIGHT;
                     mouse = {event.button.x, event.button.y};
-                    break;
+                } break;
 
-                case SDL_MOUSEMOTION:
+                case SDL_MOUSEMOTION: {
                     left = 0 != (event.motion.state & SDL_BUTTON(SDL_BUTTON_LEFT));
                     right = 0 != (event.motion.state & SDL_BUTTON(SDL_BUTTON_RIGHT));
                     mouse = {event.motion.x, event.motion.y};
-                    break;
+                } break;
 
-                case SDL_KEYDOWN:
-                    if (SDL_SCANCODE_SPACE == event.key.keysym.scancode) {
+                case SDL_KEYDOWN: {
+                    SDL_Scancode scancode = event.key.keysym.scancode;
+                    if (SDL_SCANCODE_SPACE == scancode) {
                         paused = !paused;
-                    } else if (SDL_SCANCODE_RIGHT == event.key.keysym.scancode) {
+                    } else if (SDL_SCANCODE_RIGHT == scancode) {
                         step = true;
-                    } else if (SDL_SCANCODE_B == event.key.keysym.scancode) {
+                    } else if (SDL_SCANCODE_B == scancode) {
                         benchmark = true;
-                    } else if (SDL_SCANCODE_G == event.key.keysym.scancode) {
+                    } else if (SDL_SCANCODE_G == scancode) {
                         displayGrid = displayGrid == 0 ? 1 : 0;
+                    } else if (SDL_SCANCODE_UP == scancode) {
+                        updateDelay = std::max(1./1024., updateDelay / 2.);
+                    } else if (SDL_SCANCODE_DOWN == scancode) {
+                        updateDelay = std::min(1., updateDelay * 2.);
                     }
-                    break;
+                } break;
 
                 default:
                     break;
@@ -137,25 +145,50 @@ namespace app {
         }
     }
 
-    void Game::update(const GameTime& /*gameTime*/) {
-        for (int i = 0; i< speed; ++i) {
-            if (benchmark) {
-                Simulation backup = simulation;
-                clock.update();
-                for (int j = 0; j < benchIters; j++) {
-                    simulation.nextStep();
-                }
-                const GameTime gameTime = clock.update();
-                const auto message = fmt::format("{} iterations per second", std::lround(benchIters / gameTime.elapsedTime.count()));
-                window->showSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Benchmark results", message.c_str());
-                benchmark = false;
-                simulation = backup;
+    void Game::update() {
+        if (benchmark) {
+            Simulation backup = simulation;
+            GameClock benchClock{};
+            for (int j = 0; j < benchIters; j++) {
+                simulation.nextStep();
             }
-            if (!paused || step) {
+            const GameTime gameTime = benchClock.update();
+            const auto message = fmt::format("{} iterations per second", std::lround(benchIters / gameTime.elapsedTime.count()));
+            window->showSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Benchmark results", message.c_str());
+            benchmark = false;
+            simulation = backup;
+            resetSimClock();
+            return;
+        }
+
+        if (paused) {
+            resetSimClock();
+
+            if (step) {
                 simulation.nextStep();
                 step = false;
             }
+            return;
         }
+
+        GameTime time = simClock.update();
+        if (!paused) {
+            while (time.totalTime.count() >= nextSimUpdate) {
+                simulation.nextStep();
+                nextSimUpdate += updateDelay;
+                if (minFpsClock.update().totalTime.count() > 1. / minFps) {
+                    // frame time is too large => throttle
+                    break;
+                }
+            }
+        }
+        minFpsClock = GameClock{};
+
+    }
+
+    void Game::resetSimClock() {
+        simClock = GameClock{};
+        nextSimUpdate = updateDelay;
     }
 
     void Game::mouseEdit(Point mouse, CellState cellState) {
@@ -172,7 +205,7 @@ namespace app {
     }
 
 
-    void Game::render(const GameTime& /*gameTime*/) {
+    void Game::render() {
         const Simulation::TAliveList& aliveList = simulation.getAliveCells();
         std::vector<SDL_Point> pixels{};
         std::for_each(aliveList.cbegin(), aliveList.cend(), [=,&pixels](std::pair<int, int> xy) {
@@ -217,9 +250,8 @@ namespace app {
         handleEvents(events, mouseOnGui);
 
         // UPDATE and RENDER
-        const GameTime gameTime = clock.update();
-        update(gameTime);
-        render(gameTime);
+        update();
+        render();
 
         return false;
     }

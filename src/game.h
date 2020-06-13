@@ -53,21 +53,25 @@ namespace app {
         Coordinates coordinates;
         sdl::Texture gridTexture;
         sdl::Texture renderTexture;
-        GameClock clock{};
         bool paused{true};
         bool benchmark{false};
         Simulation simulation;
         NuklearSdl nuklearSdl;
         Gui gui;
+        GameClock simClock{};
+        GameClock minFpsClock{};
+        double nextSimUpdate{};
 
         void handleEvents(std::span<SDL_Event> events, bool mouseOnGui);
         void mouseEdit(Point mouse, CellState state);
 
-        void update(const GameTime& gameTime);
+        void update();
 
-        void render(const GameTime& gameTime);
+        void render();
 
         void onCoordinatesChanged();
+
+        void resetSimClock();
     };
 
 }  // namespace app
