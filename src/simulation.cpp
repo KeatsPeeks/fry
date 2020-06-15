@@ -7,7 +7,7 @@ namespace app {
     std::pmr::unsynchronized_pool_resource Simulation::pool{};
 #endif
 
-    Simulation::Simulation(int size, const std::vector<std::vector<uint8_t>> &pattern) : size{size} {
+    Simulation::Simulation(int size, const Pattern& pattern) : size{size} {
         matrix.resize(size);
         for (int i = 0; i < size; ++i) {
             matrix[i].resize(size);
@@ -20,7 +20,7 @@ namespace app {
     void Simulation::set(int x, int y, CellState cellState) {
         incrementalSet(x, y, cellState);
         if (cellState == CellState::DEAD) {
-            aliveList.erase(std::make_pair(x, y));
+            aliveList.erase({x, y});
         }
     }
 
@@ -30,20 +30,20 @@ namespace app {
         }
         matrix[y][x] = cellState == CellState::ALIVE;
         if (cellState == CellState::ALIVE) {
-            aliveList.insert(std::make_pair(x, y));
+            aliveList.insert({x, y});
         }
     }
 
     void Simulation::nextStep() {
         std::copy(matrix.cbegin(), matrix.cend(), matrixCopy.begin());
 
-        std::vector<std::pair<int, int>> changeListCopy{aliveList.cbegin(), aliveList.cend()};
+        std::vector<Point> changeListCopy{aliveList.cbegin(), aliveList.cend()};
 
         aliveList.clear();
 
         for (const auto & it : changeListCopy) {
-            int x = it.first;
-            int y = it.second;
+            int x = it.x;
+            int y = it.y;
             updateCell(x - 1, y );
             updateCell(x, y);
             updateCell(x + 1, y);
@@ -76,16 +76,11 @@ namespace app {
         incrementalSet(x, y, alive ? CellState::ALIVE : CellState::DEAD);
     }
 
-    void Simulation::init(std::vector<std::vector<uint8_t>> pattern) {
-        int height = static_cast<int>(pattern.size());
-        const int yOffset = (size - height) / 2;
-        for (int y = 0; y < height; ++y) {
-            const auto& row = pattern[y];
-            int width = static_cast<int>(row.size());
-            const int xOffset = (size - width) / 2;
-            for (int x = 0; x < width; ++x) {
-                set(x + xOffset, y + yOffset, row[x] == 1 ? CellState::ALIVE : CellState::DEAD);
-            }
+    void Simulation::init(const Pattern& pattern) {
+        const int yOffset = (size - pattern.size().h) / 2;
+        const int xOffset = (size - pattern.size().w) / 2;
+        for (const auto& cell : pattern.aliveCells()) {
+            set(cell.x + xOffset, cell.y + yOffset, CellState::ALIVE);
         }
     }
 

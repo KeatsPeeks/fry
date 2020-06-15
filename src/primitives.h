@@ -8,6 +8,8 @@ namespace app {
         int y{};
     };
 
+    inline bool operator==(const Point& p1, const Point& p2) { return p1.x == p2.x && p1.y == p2.y; }
+
     struct Vector {
         int x{};
         int y{};

@@ -3,6 +3,7 @@
 #include "primitives.h"
 
 #include <array>
+#include <utility>
 
 #include <fmt/format.h>
 
@@ -41,7 +42,7 @@ namespace app {
         }
     } // anonymous namespace
 
-    Gui::Gui(nk_context* pNuklearCtx, GuiBindings bindings) : pNuklearCtx{pNuklearCtx}, bindings{bindings} {
+    Gui::Gui(nk_context* pNuklearCtx, std::vector<Pattern> patterns, GuiBindings bindings) : pNuklearCtx{pNuklearCtx}, bindings{bindings}, patterns{std::move(patterns)} {
         std::array<nk_color, NK_COLOR_COUNT> table{};
         defaultBlueTheme(&table);
         const nk_color customBlue = nk_rgba(52, 119, 235, 255);
@@ -79,8 +80,11 @@ namespace app {
     static const int maxCellSize = 32;
 
     void Gui::update(int viewPortWidth) {
+        if (*bindings.selectedPattern != nullptr) {
+            return;
+        }
         constexpr Size margin{-7, 0};
-        constexpr Size panelSize{200, 300};
+        constexpr Size panelSize{200, 400};
         Rect panelRect{{viewPortWidth - panelSize.w - margin.w, margin.h}, panelSize};
         if (0 != nk_begin(pNuklearCtx, "", to_nk_rect(panelRect), 0)) {
             nk_layout_row_dynamic(pNuklearCtx, 8, 1);
@@ -111,6 +115,15 @@ namespace app {
             nk_slider_int(pNuklearCtx, minCellSize, bindings.cellSize, maxCellSize, 1);
             nk_layout_row_dynamic(pNuklearCtx, 0, 1);
             nk_label(pNuklearCtx, fmt::format("{} px", *bindings.cellSize).c_str(), NK_TEXT_ALIGN_CENTERED | NK_TEXT_ALIGN_TOP);
+
+            // patterns
+            nk_layout_row_dynamic(pNuklearCtx, 0, 1);
+            nk_label(pNuklearCtx, "Place pattern:", NK_TEXT_ALIGN_LEFT);
+            for (const auto& pattern : patterns) {
+                if (1 == nk_button_label(pNuklearCtx, pattern.name().c_str())) {
+                    *bindings.selectedPattern = &pattern;
+                }
+            }
         }
         nk_end(pNuklearCtx);
     }

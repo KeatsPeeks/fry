@@ -123,13 +123,12 @@ set(APP_FILES
         src/main.cpp
         src/nuklear_sdl.cpp
         src/nuklear_sdl.h
-        src/patterns.h
         src/primitives.h
         src/sdl_wrappers.h
         src/simulation.cpp
         src/simulation.h
         src/version.h
-)
+        src/pattern.cpp src/pattern.h)
 add_executable(${CMAKE_PROJECT_NAME} ${WIN32_EXE} ${SDL2_GFX_FILES} ${NUKLEAR_FILES} ${APP_FILES})
 
 # use the non-debug versions for RelWithDebInfo and MinSizeRel build types

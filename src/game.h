@@ -3,11 +3,13 @@
 #include "clock.h"
 #include "gui.h"
 #include "nuklear_sdl.h"
+#include "pattern.h"
 #include "primitives.h"
 #include "sdl_wrappers.h"
 #include "simulation.h"
 
 #include <span>
+#include <vector>
 
 namespace app {
 
@@ -55,6 +57,7 @@ namespace app {
         bool paused{true};
         bool benchmark{false};
         bool step{false};
+        const Pattern* selectedPattern{};
 
         // options
         int displayGrid{1};
@@ -64,6 +67,7 @@ namespace app {
         sdl::Window* window;
         sdl::Cursor cursor;
         sdl::Cursor guiCursor;
+        sdl::Cursor pointerCursor;
         sdl::Renderer renderer;
         Coordinates coordinates;
         sdl::Texture gridTexture;
@@ -71,10 +75,11 @@ namespace app {
         Simulation simulation;
         NuklearSdl nuklearSdl;
         Gui gui;
+        Point mouse{};
 
         void handleEvents(std::span<SDL_Event> events, bool mouseOnGui);
 
-        void mouseEdit(Point mouse, CellState state);
+        void mouseEdit(CellState state);
 
         void update();
 
@@ -83,6 +88,12 @@ namespace app {
         void onCoordinatesChanged();
 
         void resetSimClock();
+
+        void renderCells() const;
+        void renderGrid() const;
+        void renderSelectedPattern() const;
+
+        void placeSelectedPattern();
     };
 
 }  // namespace app

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "pattern.h" // TODO virer, normalement le game est capable d'appeler set directement ?
+#include "primitives.h"
+
 #include <array>
 #include <cstdint>
 #include <unordered_set>
@@ -15,12 +18,11 @@ namespace app {
         ALIVE
     };
 
-    struct pair_hash
+    struct point_hash
     {
-        template <class T1, class T2>
-        int operator ()(std::pair<T1, T2> const &pair) const
+        int operator ()(const Point& point) const
         {
-            return pair.first ^ pair.second;
+            return point.x ^ point.y;
         }
     };
 
@@ -28,13 +30,13 @@ namespace app {
     {
 #ifdef ENABLE_PMR
     public:
-        using TAliveList = std::pmr::unordered_set<std::pair<int, int>, pair_hash>;
+        using TAliveList = std::pmr::unordered_set<Point, point_hash>;
     private:
         static std::pmr::unsynchronized_pool_resource pool;
         TAliveList aliveList{&pool};
 #else
     public:
-        using TAliveList = std::unordered_set<std::pair<size_t, size_t>, pair_hash>;
+        using TAliveList = std::unordered_set<Point, point_hash>;
     private:
         TAliveList aliveList{};
 #endif
@@ -42,7 +44,7 @@ namespace app {
     public:
         using TPattern = std::vector<std::vector<uint8_t>>;
 
-        explicit Simulation(int size, const TPattern& pattern = {});
+        explicit Simulation(int size, const Pattern& pattern = {});
 
         [[nodiscard]] bool get(int x, int y) const { return matrix[y][x]; }
         void set(int x, int y, CellState cellState);
@@ -57,7 +59,7 @@ namespace app {
         std::vector<std::vector<bool>> matrix;
         std::vector<std::vector<bool>> matrixCopy;
 
-        void init(std::vector<std::vector<uint8_t>> pattern);
+        void init(const Pattern& pattern);
 
         void updateCell(int x, int y);
 

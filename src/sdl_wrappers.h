@@ -118,10 +118,10 @@ namespace app::sdl {
             check(SDL_RenderFillRect(getRaw(), rect));
         }
 
-        void drawPoints(SDL_Point point) {
+        void drawPoints(SDL_Point point) const {
             check(SDL_RenderDrawPoint(getRaw(), point.x, point.y));
         }
-        void drawPoints(std::span<SDL_Point> points) {
+        void drawPoints(std::span<SDL_Point> points) const {
             // Weird bugs with SDL_RenderDrawPoints on the browser
             // check(SDL_RenderDrawPoints(getRaw(), &points[0], static_cast<int>(points.size())));
             for (auto p : points) {

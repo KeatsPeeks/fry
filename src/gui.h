@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../deps/nuklear/nuklear.h"
+#include "pattern.h"
 
 namespace app {
 
@@ -9,15 +10,17 @@ namespace app {
         int* speed;
         bool* paused;
         int* cellSize;
+        const Pattern** selectedPattern;
     };
 
     class Gui {
     public:
-        Gui(nk_context* pNuklearCtx, GuiBindings bindings);
+        Gui(nk_context* pNuklearCtx, std::vector<Pattern> patterns, GuiBindings bindings);
         void update(int viewPortWidth);
 
     private:
         nk_context* pNuklearCtx{};
         GuiBindings bindings{};
+        std::vector<Pattern> patterns;
     };
 } // namespace app
