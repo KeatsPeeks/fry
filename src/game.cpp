@@ -21,13 +21,13 @@ namespace {
     }
 
     sdl::Texture createRenderTexture(const sdl::Renderer& renderer, Coordinates coords) {
-        sdl::Texture texture = sdl::Texture{SDL_CreateTexture(renderer.getRaw(), SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, coords.grid().w, coords.grid().h)};
+        sdl::Texture texture{SDL_CreateTexture(renderer.getRaw(), SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, coords.grid().w, coords.grid().h)};
         texture.setBlendMode(SDL_BLENDMODE_BLEND);
         return texture;
     }
 
     sdl::Texture createGridTexture(const sdl::Renderer& renderer, Coordinates coords) {
-        const Size textureSize{coords.window().w - coords.window().w % coords.gridCellSize(), coords.window().h - coords.window().h % coords.gridCellSize()};
+        const Size textureSize = {coords.window().w - coords.window().w % coords.gridCellSize(), coords.window().h - coords.window().h % coords.gridCellSize()};
         const Size nbLines = coords.grid() + 1;
 
         sdl::Texture texture{SDL_CreateTexture(renderer.getRaw(), SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, textureSize.w, textureSize.h)};
@@ -64,9 +64,8 @@ Game::Game(sdl::Window* window) :
     gridTexture{createGridTexture(renderer, coordinates)},
     renderTexture{createRenderTexture(renderer, coordinates)},
     simulation{simSize.w, getDefaultPattern()},
-    nuklearSdl(window->getRaw(), renderer.getRaw(), "assets/Cousine-Regular.ttf", 16),
-    gui(&nuklearSdl.getContext(), getDefaultPatterns(), {&displayGrid, &updateSpeedPower, &paused, &cellSize, &selectedPattern})
-{
+    nuklearSdl{window->getRaw(), renderer.getRaw(), "assets/Cousine-Regular.ttf", 16},
+    gui{&nuklearSdl.getContext(), getDefaultPatterns(), {&displayGrid, &updateSpeedPower, &paused, &cellSize, &selectedPattern, &modalGui}} {
     resetSimClock();
 }
 
@@ -86,7 +85,7 @@ void Game::handleEvents(std::span<SDL_Event> events, bool mouseOnGui) {
             } break;
 
             case SDL_MOUSEWHEEL: {
-                if (event.wheel.y != 0) {
+                if (!modalGui && event.wheel.y != 0) {
                     cellSize = std::min(32, std::max(1, cellSize + (event.wheel.y > 0 ? 1 : -1)));
                 }
             } break;
@@ -103,20 +102,21 @@ void Game::handleEvents(std::span<SDL_Event> events, bool mouseOnGui) {
 
             case SDL_KEYDOWN: {
                 SDL_Scancode scancode = event.key.keysym.scancode;
-                if (selectedPattern == nullptr && SDL_SCANCODE_SPACE == scancode) {
+                if (!modalGui && selectedPattern == nullptr && SDL_SCANCODE_SPACE == scancode) {
                     paused = !paused;
-                } else if (selectedPattern == nullptr && SDL_SCANCODE_RIGHT == scancode) {
+                } else if (!modalGui && selectedPattern == nullptr && SDL_SCANCODE_RIGHT == scancode) {
                     step = true;
-                } else if (selectedPattern == nullptr && SDL_SCANCODE_B == scancode) {
+                } else if (!modalGui && selectedPattern == nullptr && SDL_SCANCODE_B == scancode) {
                     benchmark = true;
-                } else if (SDL_SCANCODE_G == scancode) {
+                } else if (!modalGui && SDL_SCANCODE_G == scancode) {
                     displayGrid = displayGrid == 0 ? 1 : 0;
-                } else if (selectedPattern == nullptr && SDL_SCANCODE_UP == scancode) {
+                } else if (!modalGui && selectedPattern == nullptr && SDL_SCANCODE_UP == scancode) {
                     updateSpeedPower = std::min(10, updateSpeedPower + 1);
-                } else if (selectedPattern == nullptr && SDL_SCANCODE_DOWN == scancode) {
+                } else if (!modalGui && selectedPattern == nullptr && SDL_SCANCODE_DOWN == scancode) {
                     updateSpeedPower = std::max(0, updateSpeedPower - 1);
-                } else if (selectedPattern != nullptr && SDL_SCANCODE_ESCAPE == scancode) {
+                } else if (SDL_SCANCODE_ESCAPE == scancode) {
                     selectedPattern = nullptr;
+                    modalGui = false;
                 }
             } break;
 
@@ -129,7 +129,7 @@ void Game::handleEvents(std::span<SDL_Event> events, bool mouseOnGui) {
     if (coordinates.gridCellSize() != cellSize) {
         onCoordinatesChanged();
     }
-    if (selectedPattern == nullptr && left != right) {
+    if (!modalGui && selectedPattern == nullptr && left != right) {
         mouseEdit(left ? CellState::ALIVE : CellState::DEAD);
     }
     if (selectedPattern != nullptr) {
@@ -153,13 +153,13 @@ void Game::handleEvents(std::span<SDL_Event> events, bool mouseOnGui) {
 void Game::update() {
     if (benchmark) {
         Simulation backup = simulation;
-        GameClock benchClock{};
+        GameClock benchClock;
         for (int j = 0; j < benchIters; j++) {
             simulation.nextStep();
         }
         const GameTime gameTime = benchClock.update();
         auto result = std::lround(benchIters / gameTime.elapsedTime.count());
-        const auto message = fmt::format("{} iterations per second", result);
+        const auto message = fmt::format("{} ups", result);
         window->showSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Benchmark results", message.c_str());
         benchmark = false;
         simulation = backup;
@@ -214,7 +214,7 @@ void Game::placeSelectedPattern() {
     }
 
     Size s = selectedPattern->size() / 2;
-    const Vector offset{s.w, s.h};
+    const Vector offset = {s.w, s.h};
     const Point origin = coordinates.windowToSim(mouse) - offset;
     std::vector<SDL_Point> patternCells;
     for (const Point& p : selectedPattern->aliveCells()) {
@@ -234,7 +234,7 @@ void Game::render() {
 }
 
 void Game::renderSelectedPattern() const {
-    if (selectedPattern == nullptr) {
+    if (selectedPattern == nullptr && !modalGui) {
         return;
     }
 
@@ -242,15 +242,18 @@ void Game::renderSelectedPattern() const {
 
     renderer.setDrawColor(Color::PatternOverlay);
     renderer.fillRect(nullptr);
-    Size s = selectedPattern->size() / 2;
-    const Vector offset{s.w, s.h};
-    const Point origin = coordinates.windowToGrid(mouse) - offset;
-    std::vector<SDL_Point> patternCells;
-    for (const Point& p : selectedPattern->aliveCells()) {
-        patternCells.push_back({origin.x + p.x, origin.y + p.y});
+
+    if (selectedPattern != nullptr) {
+        Size s = selectedPattern->size() / 2;
+        const Vector offset = {s.w, s.h};
+        const Point origin = coordinates.windowToGrid(mouse) - offset;
+        std::vector<SDL_Point> patternCells;
+        for (const Point& p : selectedPattern->aliveCells()) {
+            patternCells.push_back({origin.x + p.x, origin.y + p.y});
+        }
+        renderer.setDrawColor(Color::PatternCell);
+        renderer.drawPoints(patternCells);
     }
-    renderer.setDrawColor(Color::PatternCell);
-    renderer.drawPoints(patternCells);
 
     renderer.setTarget(nullptr);
     renderer.copy(renderTexture.getRaw(), nullptr, nullptr);
@@ -270,7 +273,7 @@ void Game::renderCells() const {
     renderer.fillRect(nullptr);
 
     // alive cells
-    std::vector<SDL_Point> alives{};
+    std::vector<SDL_Point> alives;
     for (const Point& p : simulation.getAliveCells()) {
         const Point tex = coordinates.simToGrid(p);
         if (tex.x >= 0 && tex.x < coordinates.grid().w && tex.y >= 0 && tex.y < coordinates.grid().h) {
@@ -296,7 +299,7 @@ bool Game::mainLoop() {
         events.push_back(event);
     }
     nuklearSdl.handleEvents(events);
-    gui.update(renderer.getOutputSize());
+    gui.update(renderer);
     bool mouseOnGui = nk_window_is_any_hovered(&nuklearSdl.getContext()) != 0;
     handleEvents(events, mouseOnGui);
 

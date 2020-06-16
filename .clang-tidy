@@ -1,4 +1,9 @@
 ---
 Checks: '*,-fuchsia-*,-modernize-use-trailing-return-type,-hicpp-signed-bitwise,-cppcoreguidelines-pro-type-union-access,-*-magic-numbers'
+CheckOptions:
+  - key:             cppcoreguidelines-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value:           '1'
+  - key:             misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value:           '1'
 WarningsAsErrors: '*'
 

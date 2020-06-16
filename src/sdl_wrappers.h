@@ -19,7 +19,7 @@ namespace app::sdl {
         if (p == nullptr) {
             throw std::runtime_error(SDL_GetError());
         }
-        return std::unique_ptr<T, Destructor<T>>{p, fun};
+        return {p, fun};
     }
 
     inline void check(int result) {
@@ -142,7 +142,6 @@ namespace app::sdl {
         void clear() const {
             check(SDL_RenderClear(getRaw()));
         }
-
 
     };
 

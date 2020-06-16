@@ -13,58 +13,58 @@
 
 namespace app {
 
-    enum class CellState {
-        DEAD,
-        ALIVE
-    };
+enum class CellState {
+    DEAD,
+    ALIVE
+};
 
-    struct point_hash
+struct point_hash
+{
+    int operator ()(const Point& point) const
     {
-        int operator ()(const Point& point) const
-        {
-            return point.x ^ point.y;
-        }
-    };
+        return point.x ^ point.y;
+    }
+};
 
-    class Simulation
-    {
+class Simulation
+{
 #ifdef ENABLE_PMR
-    public:
-        using TAliveList = std::pmr::unordered_set<Point, point_hash>;
-    private:
-        static std::pmr::unsynchronized_pool_resource pool;
-        TAliveList aliveList{&pool};
+public:
+    using TAliveList = std::pmr::unordered_set<Point, point_hash>;
+private:
+    static std::pmr::unsynchronized_pool_resource pool;
+    TAliveList aliveList{&pool};
 #else
-    public:
-        using TAliveList = std::unordered_set<Point, point_hash>;
-    private:
-        TAliveList aliveList{};
+public:
+    using TAliveList = std::unordered_set<Point, point_hash>;
+private:
+    TAliveList aliveList{};
 #endif
 
-    public:
-        using TPattern = std::vector<std::vector<uint8_t>>;
+public:
+    using TPattern = std::vector<std::vector<uint8_t>>;
 
-        explicit Simulation(int size, const Pattern& pattern = {});
+    explicit Simulation(int size, const Pattern& pattern = {});
 
-        [[nodiscard]] bool get(int x, int y) const { return matrix[y][x]; }
-        void set(int x, int y, CellState cellState);
-        [[nodiscard]] int getSize() const { return size; }
+    [[nodiscard]] bool get(int x, int y) const { return matrix[y][x]; }
+    void set(int x, int y, CellState cellState);
+    [[nodiscard]] int getSize() const { return size; }
 
-        void nextStep();
-        [[nodiscard]] const TAliveList& getAliveCells() const { return aliveList; }
+    void nextStep();
+    [[nodiscard]] const TAliveList& getAliveCells() const { return aliveList; }
 
-    private:
-        int size;
+private:
+    int size;
 
-        std::vector<std::vector<bool>> matrix;
-        std::vector<std::vector<bool>> matrixCopy;
+    std::vector<std::vector<bool>> matrix;
+    std::vector<std::vector<bool>> matrixCopy;
 
-        void init(const Pattern& pattern);
+    void init(const Pattern& pattern);
 
-        void updateCell(int x, int y);
+    void updateCell(int x, int y);
 
-        void incrementalSet(int x, int y, CellState cellState);
-    };
+    void incrementalSet(int x, int y, CellState cellState);
+};
 
 }  // namespace app
 

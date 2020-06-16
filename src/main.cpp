@@ -22,11 +22,11 @@ extern "C" {
 
 namespace {
 
-    constexpr int DEFAULT_WIDTH{1024};
-    constexpr int DEFAULT_HEIGHT{768};
+    constexpr int DEFAULT_WIDTH = 1024;
+    constexpr int DEFAULT_HEIGHT = 768;
 
     void init_loggers() {
-        auto file_logger{spdlog::basic_logger_mt("root", "lastexecution.log", true)};
+        auto file_logger = spdlog::basic_logger_mt("root", "lastexecution.log", true);
         spdlog::set_default_logger(file_logger);
         spdlog::flush_on(spdlog::level::critical);
     }
