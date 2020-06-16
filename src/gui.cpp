@@ -79,14 +79,14 @@ namespace app {
     static const int minCellSize = 1;
     static const int maxCellSize = 32;
 
-    void Gui::update(int viewPortWidth) {
+    void Gui::update(Size viewPort) {
         if (*bindings.selectedPattern != nullptr) {
             return;
         }
-        constexpr Size margin{-7, 0};
-        constexpr Size panelSize{200, 400};
-        Rect panelRect{{viewPortWidth - panelSize.w - margin.w, margin.h}, panelSize};
-        if (0 != nk_begin(pNuklearCtx, "", to_nk_rect(panelRect), 0)) {
+        const Size margin{2, 0};
+        const Size panelSize{200, viewPort.h};
+        Rect panelRect{{viewPort.w - panelSize.w - margin.w, margin.h}, panelSize};
+        if (0 != nk_begin(pNuklearCtx, "", to_nk_rect(panelRect), NK_WINDOW_NO_SCROLLBAR)) {
             nk_layout_row_dynamic(pNuklearCtx, 8, 1);
 
             // Play/Pause button

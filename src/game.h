@@ -61,7 +61,7 @@ namespace app {
 
         // options
         int displayGrid{1};
-        int updateSpeedPower{3};
+        int updateSpeedPower{5};
         int cellSize{12};
 
         sdl::Window* window;

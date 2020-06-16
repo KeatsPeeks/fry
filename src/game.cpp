@@ -296,7 +296,7 @@ bool Game::mainLoop() {
         events.push_back(event);
     }
     nuklearSdl.handleEvents(events);
-    gui.update(renderer.getOutputSize().w);
+    gui.update(renderer.getOutputSize());
     bool mouseOnGui = nk_window_is_any_hovered(&nuklearSdl.getContext()) != 0;
     handleEvents(events, mouseOnGui);
 

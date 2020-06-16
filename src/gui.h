@@ -16,7 +16,7 @@ namespace app {
     class Gui {
     public:
         Gui(nk_context* pNuklearCtx, std::vector<Pattern> patterns, GuiBindings bindings);
-        void update(int viewPortWidth);
+        void update(Size viewPort);
 
     private:
         nk_context* pNuklearCtx{};
