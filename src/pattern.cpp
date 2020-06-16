@@ -1,6 +1,8 @@
 
 #include "pattern.h"
 #include <algorithm>
+#include <fstream>
+#include <string>
 
 
 namespace app {
@@ -31,13 +33,31 @@ namespace {
     }
 } // anonymous namespace
 
-Pattern::Pattern(std::string name, TCells aliveCells) : m_name{std::move(name)}, m_aliveCells{std::move(aliveCells)},
+Pattern::Pattern(std::string_view name, TCells aliveCells) : m_name{name}, m_aliveCells{std::move(aliveCells)},
     m_size{getSize(m_aliveCells)} {
+}
+
+std::optional<Pattern> loadFromFile(std::string_view name, std::string_view filePath) {
+    std::ifstream file{filePath.data()};
+    std::string line;
+    Pattern::TCells cells;
+    for (int y = 0; std::getline(file, line);) {
+        if (!line.starts_with('!')) {
+            for (int x = 0; auto c : line) {
+                if (c == 'O') {
+                    cells.push_back({x, y});
+                }
+                x++;
+            }
+            y++;
+        }
+    }
+    return cells.empty() ? std::nullopt : std::optional(Pattern{name, cells});
 }
 
 Pattern getDefaultPattern() {
     return {
-		"acorn",
+		"Acorn",
 		toAliveCells({
 			{ 0, 1, 0, 0, 0, 0, 0 },
 			{ 0, 0, 0, 1, 0, 0, 0 },
@@ -63,19 +83,37 @@ std::vector<Pattern> getDefaultPatterns() {
 				{0, 1, 0, 0, 0, 1, 1, 1}
 			})
 		}, {
-			"glider",
+			"Glider",
 			toAliveCells({
 			    {1, 1, 1},
 			    {1, 0, 0},
 			    {0, 1, 0},
 			})
 		}, {
-			"spaceship",
+			"Light spaceship",
 			toAliveCells({
-				{0, 1, 0, 0, 1},
-				{1, 0, 0, 0, 0},
+				{1, 0, 0, 1, 0},
+				{0, 0, 0, 0, 1},
 				{1, 0, 0, 0, 1},
-				{1, 1, 1, 1, 0},
+				{0, 1, 1, 1, 1},
+			})
+		}, {
+			"Medium spaceship",
+			toAliveCells({
+				{0, 0, 1, 0, 0, 0},
+				{1, 0, 0, 0, 1, 0},
+				{0, 0, 0, 0, 0, 1},
+				{1, 0, 0, 0, 0, 1},
+				{0, 1, 1, 1, 1, 1},
+			})
+		}, {
+			"Heavy spaceship",
+			toAliveCells({
+				{0, 0, 1, 1, 0, 0, 0},
+				{1, 0, 0, 0, 0, 1, 0},
+				{0, 0, 0, 0, 0, 0, 1},
+				{1, 0, 0, 0, 0, 0, 1},
+				{0, 1, 1, 1, 1, 1, 1},
 			})
 		}, {
 			"Gosper",
@@ -116,7 +154,7 @@ std::vector<Pattern> getDefaultPatterns() {
 				{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 			})
 		}, {
-			"infinite 1",
+			"Infinite 1",
 			toAliveCells({
 				{0, 0, 0, 0, 0, 0, 1, 0},
 				{0, 0, 0, 0, 1, 0, 1, 1},
@@ -126,7 +164,7 @@ std::vector<Pattern> getDefaultPatterns() {
 				{1, 0, 1, 0, 0, 0, 0, 0},
 			})
 		}, {
-			"infinite 2",
+			"Infinite 2",
 			toAliveCells({
 				{1, 1, 1, 0, 1},
 				{1, 0, 0, 0, 0},
@@ -135,7 +173,7 @@ std::vector<Pattern> getDefaultPatterns() {
 				{1, 0, 1, 0, 1},
 			})
 		}, {
-			"infinite 3",
+			"Infinite 3",
 			toAliveCells({
 				{ 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1 },
 			})

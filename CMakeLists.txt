@@ -72,8 +72,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU.*")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_WARNINGS} -DENABLE_PMR")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-elseif(MSVC) # last, because MSVC is defined in clang-cl
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MSVC_WARNINGS} /DENABLE_PMR")
+elseif(MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MSVC_WARNINGS} /DENABLE_PMR /DNOMINMAX")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4068")
 else()
     message(AUTHOR_WARNING "No compiler warnings set for '${CMAKE_CXX_COMPILER_ID}' compiler.")
@@ -123,12 +123,14 @@ set(APP_FILES
         src/main.cpp
         src/nuklear_sdl.cpp
         src/nuklear_sdl.h
+        src/pattern.cpp
+        src/pattern.h
         src/primitives.h
         src/sdl_wrappers.h
         src/simulation.cpp
         src/simulation.h
         src/version.h
-        src/pattern.cpp src/pattern.h)
+)
 add_executable(${CMAKE_PROJECT_NAME} ${WIN32_EXE} ${SDL2_GFX_FILES} ${NUKLEAR_FILES} ${APP_FILES})
 
 # use the non-debug versions for RelWithDebInfo and MinSizeRel build types

@@ -9,7 +9,7 @@ struct Point {
     int x{};
     int y{};
 
-    auto operator<=>(const Point&) const = default;
+    bool operator==(const Point& p) const { return p.x == x && p.y == y; };
 };
 
 struct Vector {

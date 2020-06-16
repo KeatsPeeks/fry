@@ -1,11 +1,13 @@
 #include "game.h"
 
 #include "../deps/nuklear/nuklear.h"
+#include "../deps/tinydir.h"
 
 #include "colors.h"
 #include "pattern.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <fmt/format.h>
 
 namespace app {
@@ -52,6 +54,25 @@ namespace {
         return texture;
     }
 
+    std::vector<Pattern> loadAllPatterns() {
+        std::vector<Pattern> patterns = getDefaultPatterns();
+
+        // (std::filesystem requires macos 10.15+)
+        if (tinydir_dir dir; 0 == tinydir_open_sorted(&dir, "assets/patterns")) {
+            std::unique_ptr<tinydir_dir, decltype(&tinydir_close)> finally{&dir, tinydir_close};
+            for (size_t i = 0; i < dir.n_files; i++) {
+                tinydir_file file;
+                tinydir_readfile_n(&dir, &file, i);
+                const std::optional<Pattern>& pattern = loadFromFile(&file.name[0], &file.path[0]);
+                if (pattern) {
+                    patterns.push_back(pattern.value());
+                }
+            }
+        }
+
+        return patterns;
+    }
+
 } // anonymous namespace
 
 Game::Game(sdl::Window* window) :
@@ -65,7 +86,7 @@ Game::Game(sdl::Window* window) :
     renderTexture{createRenderTexture(renderer, coordinates)},
     simulation{simSize.w, getDefaultPattern()},
     nuklearSdl{window->getRaw(), renderer.getRaw(), "assets/Cousine-Regular.ttf", 16},
-    gui{&nuklearSdl.getContext(), getDefaultPatterns(), {&displayGrid, &updateSpeedPower, &paused, &cellSize, &selectedPattern, &modalGui}} {
+    gui{&nuklearSdl.getContext(), loadAllPatterns(), {&displayGrid, &updateSpeedPower, &paused, &cellSize, &selectedPattern, &modalGui}} {
     resetSimClock();
 }
 

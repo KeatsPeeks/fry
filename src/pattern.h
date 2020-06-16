@@ -2,7 +2,9 @@
 
 #include "primitives.h"
 
+#include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -14,7 +16,7 @@ public:
     using TCells = std::vector<Point>;
 
     Pattern() = default;
-    Pattern(std::string name, TCells aliveCells);
+    Pattern(std::string_view name, TCells aliveCells);
 
     [[nodiscard]] const std::string& name() const { return m_name; }
     [[nodiscard]] const TCells& aliveCells() const { return m_aliveCells; }
@@ -28,5 +30,6 @@ private:
 
 std::vector<Pattern> getDefaultPatterns();
 Pattern getDefaultPattern();
+std::optional<Pattern> loadFromFile(std::string_view name, std::string_view filePath);
 
 } // namespace app
