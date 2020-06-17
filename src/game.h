@@ -95,6 +95,8 @@ private:
     void renderSelectedPattern() const;
 
     void placeSelectedPattern();
+
+    void runBenchmark();
 };
 
 }  // namespace app

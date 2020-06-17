@@ -28,8 +28,63 @@ private:
     Size m_size;
 };
 
-std::vector<Pattern> getDefaultPatterns();
-Pattern getDefaultPattern();
 std::optional<Pattern> loadFromFile(std::string_view name, std::string_view filePath);
+Pattern loadFromStrings(std::string_view name, const std::vector<std::string>& strings);
+
+namespace Patterns {
+
+    inline Pattern acorn() {
+        return loadFromStrings("Acorn", {
+            ".O.....",
+            "...O...",
+            "OO..OOO",
+        });
+    }
+
+    inline Pattern r_pentomino() {
+        return loadFromStrings("R-pentomino", {
+            ".OO",
+            "OO.",
+            ".O.",
+        });
+    }
+
+    inline Pattern diehard() {
+        return loadFromStrings("Diehard", {
+            "......O.",
+            "OO......",
+            ".O...OOO",
+        });
+    }
+
+    inline Pattern glider() {
+        return loadFromStrings("Glider", {
+            "OOO",
+            "O..",
+            ".O.",
+        });
+    }
+    
+    inline Pattern spaceship() {
+        return loadFromStrings("Glider", {
+            "..O...",
+            "O...O.",
+            ".....O",
+            "O....O",
+            ".OOOOO",
+        });
+    }
+    
+    inline Pattern infinite() {
+        return loadFromStrings("Infinite", {
+            "OOOOOOOO.OOOOO...OOO......OOOOOOO.OOOOO",
+        });
+    }
+
+    inline std::vector<Pattern> defaultPatterns() {
+        return { acorn(), r_pentomino(), diehard(), glider(), spaceship(), infinite() };
+    }
+    
+} // namespace Patterns
 
 } // namespace app

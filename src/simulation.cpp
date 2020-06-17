@@ -3,10 +3,6 @@
 
 namespace app {
 
-#ifdef ENABLE_PMR
-std::pmr::unsynchronized_pool_resource Simulation::pool{};
-#endif
-
 Simulation::Simulation(int size, const Pattern& pattern) : m_size{size} {
     matrix.resize(size * size);
     init(pattern);

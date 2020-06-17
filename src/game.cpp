@@ -15,7 +15,6 @@ namespace app {
 namespace {
 
     constexpr Size simSize{2048, 2048};
-    constexpr int benchIters = 4000;
     constexpr double minFps = 45.;
 
     bool isMouseEvent(const SDL_Event& e) {
@@ -55,7 +54,7 @@ namespace {
     }
 
     std::vector<Pattern> loadAllPatterns() {
-        std::vector<Pattern> patterns = getDefaultPatterns();
+        std::vector<Pattern> patterns = Patterns::defaultPatterns();
 
         // (std::filesystem requires macos 10.15+)
         if (tinydir_dir dir; 0 == tinydir_open_sorted(&dir, "assets/patterns")) {
@@ -84,7 +83,7 @@ Game::Game(sdl::Window* window) :
     coordinates(simSize, renderer.getOutputSize(), cellSize),
     gridTexture{createGridTexture(renderer, coordinates)},
     renderTexture{createRenderTexture(renderer, coordinates)},
-    simulation{simSize.w, getDefaultPattern()},
+    simulation{simSize.w, Patterns::acorn()},
     nuklearSdl{window->getRaw(), renderer.getRaw(), "assets/Cousine-Regular.ttf", 16},
     gui{&nuklearSdl.getContext(), loadAllPatterns(), {&displayGrid, &updateSpeedPower, &paused, &cellSize, &selectedPattern, &modalGui}} {
     resetSimClock();
@@ -173,18 +172,7 @@ void Game::handleEvents(std::span<SDL_Event> events, bool mouseOnGui) {
 
 void Game::update() {
     if (benchmark) {
-        Simulation backup = simulation;
-        GameClock benchClock;
-        for (int j = 0; j < benchIters; j++) {
-            simulation.nextStep();
-        }
-        const GameTime gameTime = benchClock.update();
-        auto result = std::lround(benchIters / gameTime.elapsedTime.count());
-        const auto message = fmt::format("{} ups", result);
-        window->showSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Benchmark results", message.c_str());
-        benchmark = false;
-        simulation = backup;
-        resetSimClock();
+        runBenchmark();
         return;
     }
 
@@ -209,6 +197,28 @@ void Game::update() {
     }
     minFpsClock = GameClock{};
 
+}
+
+void Game::runBenchmark() {
+    std::vector<std::pair<Pattern, int>> patterns = {
+            { Patterns::acorn(), 4000 },
+            { Patterns::infinite(), 8000 },
+    };
+    std::string message;
+    for (const auto& pattern : patterns) {
+        Simulation sim{simSize.w, pattern.first};
+        GameClock benchClock;
+        for (int j = 0; j < pattern.second; j++) {
+            sim.nextStep();
+        }
+        const GameTime gameTime = benchClock.update();
+        auto result = std::lround(pattern.second / gameTime.elapsedTime.count());
+        message += fmt::format("{} = {} ups\n", pattern.first.name(), result);
+    }
+
+    window->showSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Benchmark results", message.c_str());
+    benchmark = false;
+    resetSimClock();
 }
 
 void Game::resetSimClock() {
