@@ -28,13 +28,14 @@ private:
     Size m_size;
 };
 
-std::optional<Pattern> loadFromFile(std::string_view name, std::string_view filePath);
-Pattern loadFromStrings(std::string_view name, const std::vector<std::string>& strings);
+std::optional<Pattern> loadFromFile(std::string_view fileName, std::string_view filePath);
+Pattern loadPlaintext(std::string_view name, const std::vector<std::string>& strings);
+Pattern loadRle(std::string_view name, const std::vector<std::string>& strings);
 
 namespace Patterns {
 
     inline Pattern acorn() {
-        return loadFromStrings("Acorn", {
+        return loadPlaintext("Acorn", {
             ".O.....",
             "...O...",
             "OO..OOO",
@@ -42,7 +43,7 @@ namespace Patterns {
     }
 
     inline Pattern r_pentomino() {
-        return loadFromStrings("R-pentomino", {
+        return loadPlaintext("R-pentomino", {
             ".OO",
             "OO.",
             ".O.",
@@ -50,7 +51,7 @@ namespace Patterns {
     }
 
     inline Pattern diehard() {
-        return loadFromStrings("Diehard", {
+        return loadPlaintext("Diehard", {
             "......O.",
             "OO......",
             ".O...OOO",
@@ -58,7 +59,7 @@ namespace Patterns {
     }
 
     inline Pattern glider() {
-        return loadFromStrings("Glider", {
+        return loadPlaintext("Glider", {
             "OOO",
             "O..",
             ".O.",
@@ -66,7 +67,7 @@ namespace Patterns {
     }
     
     inline Pattern spaceship() {
-        return loadFromStrings("Glider", {
+        return loadPlaintext("Glider", {
             "..O...",
             "O...O.",
             ".....O",
@@ -76,7 +77,7 @@ namespace Patterns {
     }
     
     inline Pattern infinite() {
-        return loadFromStrings("Infinite", {
+        return loadPlaintext("Infinite", {
             "OOOOOOOO.OOOOO...OOO......OOOOOOO.OOOOO",
         });
     }
