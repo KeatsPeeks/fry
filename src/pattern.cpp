@@ -5,25 +5,27 @@
 #include <regex>
 #include <string>
 
-
 namespace app {
+
+using std::string;
+using std::string_view;
 
 namespace {
 
     class Loader {
     public:
-        [[nodiscard]] virtual bool isComment(const std::string& line) const = 0;
-        [[nodiscard]] virtual std::string extractName(const std::string& line) const = 0;
-        [[nodiscard]] virtual Pattern load(std::string_view name, const std::vector<std::string>& strings) const = 0;
+        [[nodiscard]] virtual bool isComment(const string& line) const = 0;
+        [[nodiscard]] virtual string extractName(const string& line) const = 0;
+        [[nodiscard]] virtual Pattern load(string_view name, const std::vector<string>& strings) const = 0;
     };
 
     class TxtLoader : public Loader {
     public:
-        [[nodiscard]] bool isComment(const std::string& line) const override {
+        [[nodiscard]] bool isComment(const string& line) const override {
             return line.starts_with('!');
         }
 
-        [[nodiscard]] std::string extractName(const std::string& line) const override {
+        [[nodiscard]] string extractName(const string& line) const override {
             std::smatch match;
             if (std::regex_match(line, match, namePattern) && match.size() == 3) {
                 return match[2].str();
@@ -31,7 +33,7 @@ namespace {
             return "";
         }
 
-        [[nodiscard]] Pattern load(std::string_view name, const std::vector<std::string>& strings) const override {
+        [[nodiscard]] Pattern load(string_view name, const std::vector<string>& strings) const override {
             return loadPlaintext(name, strings);
         }
 
@@ -41,11 +43,11 @@ namespace {
 
     class RleLoader : public Loader {
     public:
-        [[nodiscard]] bool isComment(const std::string& line) const override {
+        [[nodiscard]] bool isComment(const string& line) const override {
             return line.starts_with('#') || line.starts_with('x');
         }
 
-        [[nodiscard]] std::string extractName(const std::string& line) const override {
+        [[nodiscard]] string extractName(const string& line) const override {
             std::smatch match;
             if (std::regex_match(line, match, namePattern) && match.size() == 2) {
                 return match[1].str();
@@ -53,7 +55,7 @@ namespace {
             return "";
         }
 
-        [[nodiscard]] Pattern load(std::string_view name, const std::vector<std::string>& strings) const override {
+        [[nodiscard]] Pattern load(string_view name, const std::vector<string>& strings) const override {
             return loadRle(name, strings);
         }
 
@@ -61,11 +63,11 @@ namespace {
         std::regex namePattern{"#N?\\s*(.+)"};
     };
 
-    const Loader* getLoader(std::string_view fileName) {
+    const Loader* getLoader(string_view fileName) {
         static TxtLoader txtLoader;
         static RleLoader rleLoader;
-        std::string::size_type idx = fileName.rfind(".");
-        if (idx == std::string::npos) {
+        string::size_type idx = fileName.rfind(".");
+        if (idx == string::npos) {
             return nullptr;
         }
         auto ext = fileName.substr(idx + 1);
@@ -90,11 +92,11 @@ namespace {
 } // anonymous namespace
 
 
-Pattern::Pattern(std::string_view name, TCells aliveCells) : m_name{name}, m_aliveCells{std::move(aliveCells)},
+Pattern::Pattern(string_view name, TCells aliveCells) : m_name{name}, m_aliveCells{std::move(aliveCells)},
     m_size{getSize(m_aliveCells)} {
 }
 
-Pattern loadPlaintext(std::string_view name, const std::vector<std::string>& strings) {
+Pattern loadPlaintext(string_view name, const std::vector<string>& strings) {
     Pattern::TCells cells;
     for (int y = 0; const auto& line : strings) {
         for (int x = 0; auto c : line) {
@@ -108,11 +110,11 @@ Pattern loadPlaintext(std::string_view name, const std::vector<std::string>& str
     return Pattern{name, cells};
 }
 
-Pattern loadRle(std::string_view name, const std::vector<std::string>& strings) {
+Pattern loadRle(string_view name, const std::vector<string>& strings) {
     Pattern::TCells cells;
 
     for (int y = 0, x = 0; const auto& line : strings) {
-        for (std::string::size_type pos = 0, tagPos{}; (tagPos = line.find_first_of("bo$!", pos)) != std::string::npos; ++pos) {
+        for (string::size_type pos = 0, tagPos{}; (tagPos = line.find_first_of("bo$!", pos)) != string::npos; ++pos) {
             auto tag = line[tagPos];
             if (tag == '!') {
                 // end of file
@@ -139,16 +141,16 @@ Pattern loadRle(std::string_view name, const std::vector<std::string>& strings) 
     return Pattern{name, cells};
 }
 
-std::optional<Pattern> loadFromFile(std::string_view fileName, std::string_view filePath) {
+std::optional<Pattern> loadFromFile(string_view fileName, string_view filePath) {
     const Loader* loader = getLoader(fileName);
     if (loader == nullptr) {
         return std::nullopt;
     }
 
     std::ifstream file{filePath.data()};
-    std::string line;
-    std::vector<std::string> strings;
-    std::string name;
+    string line;
+    std::vector<string> strings;
+    string name;
 
     while (std::getline(file, line)) {
         if (!loader->isComment(line)) {

@@ -147,6 +147,15 @@ void Game::handleEvents(std::span<SDL_Event> events, bool mouseOnGui) {
     SDL_GetMouseState(&mouse.x, &mouse.y);
 
     if (coordinates.gridCellSize() != cellSize) {
+        if (cellSize < coordinates.gridCellSize() && cellSize < 4 && displayGrid == 1) {
+            // disable grid automatically on zoom-out
+            displayGrid = 0;
+            gridAutoDisabled = true;
+        } else if (cellSize > coordinates.gridCellSize() && cellSize >= 4 && gridAutoDisabled) {
+            // re-enable the grid on zoom-in if it was disabled automatically
+            displayGrid = 1;
+            gridAutoDisabled = false;
+        }
         onCoordinatesChanged();
     }
     if (!modalGui && selectedPattern == nullptr && left != right) {

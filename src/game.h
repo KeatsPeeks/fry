@@ -57,8 +57,11 @@ private:
     bool paused = true;
     bool benchmark = false;
     bool step = false;
+
+    // status
     const Pattern* selectedPattern = nullptr;
     bool modalGui = false;
+    bool gridAutoDisabled = false;
 
     // options
     int displayGrid = 1;
