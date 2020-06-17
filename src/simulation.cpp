@@ -8,71 +8,67 @@ std::pmr::unsynchronized_pool_resource Simulation::pool{};
 #endif
 
 Simulation::Simulation(int size, const Pattern& pattern) : m_size{size} {
-    matrix.resize(size);
-    for (int i = 0; i < size; ++i) {
-        matrix[i].resize(size);
-    }
+    matrix.resize(size * size);
     init(pattern);
 }
 
 void Simulation::set(int x, int y, CellState cellState) {
-    incrementalSet({cellState, x, y});
-    matrix[y][x] = cellState;
+    incrementalSet(y * m_size + x, cellState);
+    matrix[y * m_size + x] = cellState;
 }
 
-void Simulation::incrementalSet(const Cell& p) {
-    if (p.x <= 1 || p.y <= 1 || p.x >= m_size - 2 || p.y >= m_size - 2) {
+void Simulation::incrementalSet(size_t index, CellState cellState) {
+    auto x = index % m_size;
+    auto y = index / m_size;
+    if (x <= 1 || y <= 1 || x >= m_size - 2 || y >= m_size - 2) {
         return;
     }
 
-    if (matrix[p.y][p.x] != p.alive) {
-        m_changeList.insert(p);
+    if (matrix[index] != cellState) {
+        m_changeList.insert(index);
     }
 }
 
 void Simulation::nextStep() {
-    std::vector<Cell> changeListCopy{m_changeList.cbegin(), m_changeList.cend()};
+    std::vector<size_t> changeListCopy{m_changeList.cbegin(), m_changeList.cend()};
 
     m_changeList.clear();
 
-    for (const auto & it : changeListCopy) {
-        int x = it.x;
-        int y = it.y;
-        updateCell(x - 1, y );
-        updateCell(x, y);
-        updateCell(x + 1, y);
-        updateCell(x - 1, y -1);
-        updateCell(x, y - 1);
-        updateCell(x + 1, y - 1);
-        updateCell(x - 1, y + 1);
-        updateCell(x, y + 1);
-        updateCell(x + 1, y + 1);
+    for (const size_t index : changeListCopy) {
+        for (int i = -1; i <= 1; i++) {
+            updateCell(index - 1 + i * m_size);
+            updateCell(index + i * m_size);
+            updateCell(index + 1 + i * m_size);
+        }
     }
 
-    for (const Cell& p : m_changeList) {
-        matrix[p.y][p.x] = p.alive;
+    for (size_t p : m_changeList) {
+        matrix[p] = matrix[p] == ALIVE ? DEAD : ALIVE;
     }
 }
 
-void Simulation::updateCell(int x, int y) {
+void Simulation::updateCell(const size_t index) {
     int nbAliveNeighbours = 0;
 
-    nbAliveNeighbours += matrix[y - 1][x - 1];
-    nbAliveNeighbours += matrix[y - 1][x];
-    nbAliveNeighbours += matrix[y - 1][x + 1];
-    nbAliveNeighbours += matrix[y][x - 1];
-    CellState state = matrix[y][x];
-    nbAliveNeighbours += matrix[y][x + 1];
-    nbAliveNeighbours += matrix[y + 1][x - 1];
-    nbAliveNeighbours += matrix[y + 1][x];
-    nbAliveNeighbours += matrix[y + 1][x + 1];
+    size_t i = index - m_size;
+    nbAliveNeighbours += matrix[i - 1];
+    nbAliveNeighbours += matrix[i];
+    nbAliveNeighbours += matrix[i + 1];
+    i += m_size;
+    nbAliveNeighbours += matrix[i - 1];
+    CellState state = matrix[i];
+    nbAliveNeighbours += matrix[i + 1];
+    i += m_size;
+    nbAliveNeighbours += matrix[i - 1];
+    nbAliveNeighbours += matrix[i];
+    nbAliveNeighbours += matrix[i + 1];
     if (nbAliveNeighbours == 3) {
         state = ALIVE; // birth
     } else if (state == ALIVE && nbAliveNeighbours != 2) {
         state = DEAD; // death;
     }
 
-    incrementalSet({state, x, y});
+    incrementalSet(index, state);
 }
 
 void Simulation::init(const Pattern& pattern) {

@@ -18,33 +18,17 @@ enum CellState : uint8_t {
     ALIVE
 };
 
-struct Cell {
-    CellState alive;
-    int x;
-    int y;
-
-    bool operator==(const Cell& p) const { return p.x == x && p.y == y; };
-};
-
-struct point_hash
-{
-    int operator ()(const Cell& point) const
-    {
-        return point.x ^ point.y;
-    }
-};
-
 class Simulation
 {
 #ifdef ENABLE_PMR
 public:
-    using TChangeList = std::pmr::unordered_set<Cell, point_hash>;
+    using TChangeList = std::pmr::unordered_set<size_t>;
 private:
     static std::pmr::unsynchronized_pool_resource pool;
     TChangeList m_changeList{&pool};
 #else
 public:
-    using TChangeList = std::unordered_set<Cell, point_hash>;
+    using TChangeList = std::unordered_set<size_t>;
 private:
     TChangeList m_changeList{};
 #endif
@@ -54,23 +38,22 @@ public:
 
     explicit Simulation(int size, const Pattern& pattern = {});
 
-    [[nodiscard]] CellState get(int x, int y) const { return matrix[y][x]; }
+    [[nodiscard]] CellState get(int x, int y) const { return matrix[y * m_size + x]; }
     void set(int x, int y, CellState cellState);
     [[nodiscard]] int size() const { return m_size; }
 
     void nextStep();
-    [[nodiscard]] const TChangeList& changelist() const { return m_changeList; }
 
 private:
     int m_size;
 
-    std::vector<std::vector<CellState>> matrix;
+    std::vector<CellState> matrix;
 
     void init(const Pattern& pattern);
 
-    void updateCell(int x, int y);
+    void updateCell(size_t index);
 
-    void incrementalSet(const Cell& p);
+    void incrementalSet(size_t index, CellState state);
 };
 
 }  // namespace app
