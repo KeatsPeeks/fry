@@ -30,15 +30,15 @@ class Simulation
 {
 #ifdef ENABLE_PMR
 public:
-    using TAliveList = std::pmr::unordered_set<Point, point_hash>;
+    using TChangeList = std::pmr::unordered_set<Point, point_hash>;
 private:
     static std::pmr::unsynchronized_pool_resource pool;
-    TAliveList aliveList{&pool};
+    TChangeList m_changeList{&pool};
 #else
 public:
-    using TAliveList = std::unordered_set<Point, point_hash>;
+    using TChangeList = std::unordered_set<Point, point_hash>;
 private:
-    TAliveList aliveList{};
+    TChangeList m_changeList{};
 #endif
 
 public:
@@ -48,13 +48,13 @@ public:
 
     [[nodiscard]] bool get(int x, int y) const { return matrix[y][x]; }
     void set(int x, int y, CellState cellState);
-    [[nodiscard]] int getSize() const { return size; }
+    [[nodiscard]] int size() const { return m_size; }
 
     void nextStep();
-    [[nodiscard]] const TAliveList& getAliveCells() const { return aliveList; }
+    [[nodiscard]] const TChangeList& changelist() const { return m_changeList; }
 
 private:
-    int size;
+    int m_size;
 
     std::vector<std::vector<bool>> matrix;
     std::vector<std::vector<bool>> matrixCopy;
