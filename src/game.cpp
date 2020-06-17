@@ -56,7 +56,7 @@ namespace {
     std::vector<Pattern> loadAllPatterns() {
         std::vector<Pattern> patterns = Patterns::defaultPatterns();
 
-        // (std::filesystem requires macos 10.15+)
+        // std::filesystem requires macos 10.15+, so we use tinydir
         if (tinydir_dir dir; 0 == tinydir_open_sorted(&dir, "assets/patterns")) {
             std::unique_ptr<tinydir_dir, decltype(&tinydir_close)> finally{&dir, tinydir_close};
             for (size_t i = 0; i < dir.n_files; i++) {

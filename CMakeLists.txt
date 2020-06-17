@@ -73,8 +73,8 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU.*")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_WARNINGS}")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 elseif(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MSVC_WARNINGS} /DNOMINMAX")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4068")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MSVC_WARNINGS} /DNOMINMAX /GL")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4068 /GL")
 else()
     message(AUTHOR_WARNING "No compiler warnings set for '${CMAKE_CXX_COMPILER_ID}' compiler.")
 endif()
@@ -106,7 +106,7 @@ if(MSVC)
     # LNK4075: "ignoring '/INCREMENTAL' due to '/OPT:REF' specification"
     # /OPT:Ref: always eliminates functions and data that are never referenced, even with debug info
     # /ENTRY:mainCRTStartup: required for /subsystem:windows
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ignore:4099 -ignore:4075 /OPT:Ref")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ignore:4099 -ignore:4075 /OPT:Ref /LTCG")
 
 endif()
 

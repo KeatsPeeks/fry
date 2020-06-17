@@ -30,7 +30,10 @@ public:
 
 private:
     using TChangeList = robin_hood::unordered_set<int>;
-    TChangeList m_changeList{};
+    TChangeList changeList{};
+    TChangeList changeList2{};
+    TChangeList* writeChangeList = &changeList;
+    TChangeList* readChangeList = &changeList2;
 
     Size m_size;
 

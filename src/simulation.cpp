@@ -21,16 +21,15 @@ void Simulation::updateChangeList(int index, CellState cellState) {
     }
 
     if (matrix[index] != cellState) {
-        m_changeList.insert(index);
+        writeChangeList->insert(index);
     }
 }
 
 void Simulation::nextStep() {
-    std::vector<int> changeListCopy{m_changeList.cbegin(), m_changeList.cend()};
-
-    m_changeList.clear();
-
-    for (const int index : changeListCopy) {
+    std::swap(readChangeList, writeChangeList);
+    writeChangeList->clear();
+    for (const int index : *readChangeList) {
+        // (this often does the calculations more than once on the same cell, but it's still faster than preventing it with a set)
         for (int i = -1; i <= 1; i++) {
             updateCell(index - 1 + i * m_size.w);
             updateCell(index + i * m_size.w);
@@ -38,7 +37,7 @@ void Simulation::nextStep() {
         }
     }
 
-    for (int p : m_changeList) {
+    for (int p : *writeChangeList) {
         matrix[p] = matrix[p] == ALIVE ? DEAD : ALIVE;
     }
 }
