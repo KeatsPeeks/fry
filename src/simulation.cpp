@@ -3,20 +3,20 @@
 
 namespace app {
 
-Simulation::Simulation(int size, const Pattern& pattern) : m_size{size} {
-    matrix.resize(size * size);
+Simulation::Simulation(Size size, const Pattern& pattern) : m_size{size} {
+    matrix.resize(size.w * size.h);
     init(pattern);
 }
 
 void Simulation::set(int x, int y, CellState cellState) {
-    incrementalSet(y * m_size + x, cellState);
-    matrix[y * m_size + x] = cellState;
+    updateChangeList(y * m_size.w + x, cellState);
+    matrix[y * m_size.w + x] = cellState;
 }
 
-void Simulation::incrementalSet(size_t index, CellState cellState) {
-    auto x = index % m_size;
-    auto y = index / m_size;
-    if (x <= 1 || y <= 1 || x >= m_size - 2 || y >= m_size - 2) {
+void Simulation::updateChangeList(int index, CellState cellState) {
+    auto x = index % m_size.w;
+    auto y = index / m_size.w;
+    if (x <= 1 || y <= 1 || x >= m_size.w - 2 || y >= m_size.h - 2) {
         return;
     }
 
@@ -26,35 +26,35 @@ void Simulation::incrementalSet(size_t index, CellState cellState) {
 }
 
 void Simulation::nextStep() {
-    std::vector<size_t> changeListCopy{m_changeList.cbegin(), m_changeList.cend()};
+    std::vector<int> changeListCopy{m_changeList.cbegin(), m_changeList.cend()};
 
     m_changeList.clear();
 
-    for (const size_t index : changeListCopy) {
+    for (const int index : changeListCopy) {
         for (int i = -1; i <= 1; i++) {
-            updateCell(index - 1 + i * m_size);
-            updateCell(index + i * m_size);
-            updateCell(index + 1 + i * m_size);
+            updateCell(index - 1 + i * m_size.w);
+            updateCell(index + i * m_size.w);
+            updateCell(index + 1 + i * m_size.w);
         }
     }
 
-    for (size_t p : m_changeList) {
+    for (int p : m_changeList) {
         matrix[p] = matrix[p] == ALIVE ? DEAD : ALIVE;
     }
 }
 
-void Simulation::updateCell(const size_t index) {
+void Simulation::updateCell(const int index) {
     int nbAliveNeighbours = 0;
 
-    size_t i = index - m_size;
+    size_t i = index - m_size.w;
     nbAliveNeighbours += matrix[i - 1];
     nbAliveNeighbours += matrix[i];
     nbAliveNeighbours += matrix[i + 1];
-    i += m_size;
+    i += m_size.w;
     nbAliveNeighbours += matrix[i - 1];
     CellState state = matrix[i];
     nbAliveNeighbours += matrix[i + 1];
-    i += m_size;
+    i += m_size.w;
     nbAliveNeighbours += matrix[i - 1];
     nbAliveNeighbours += matrix[i];
     nbAliveNeighbours += matrix[i + 1];
@@ -64,12 +64,12 @@ void Simulation::updateCell(const size_t index) {
         state = DEAD; // death;
     }
 
-    incrementalSet(index, state);
+    updateChangeList(index, state);
 }
 
 void Simulation::init(const Pattern& pattern) {
-    const int yOffset = (m_size - pattern.size().h) / 2;
-    const int xOffset = (m_size - pattern.size().w) / 2;
+    const int yOffset = (m_size.h - pattern.size().h) / 2;
+    const int xOffset = (m_size.w - pattern.size().w) / 2;
     for (const auto& cell : pattern.aliveCells()) {
         set(cell.x + xOffset, cell.y + yOffset, CellState::ALIVE);
     }

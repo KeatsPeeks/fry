@@ -14,7 +14,7 @@ namespace app {
 
 namespace {
 
-    constexpr Size simSize{2048, 2048};
+    constexpr Size simSize{2816, 1584};
     constexpr double minFps = 45.;
 
     bool isMouseEvent(const SDL_Event& e) {
@@ -83,7 +83,7 @@ Game::Game(sdl::Window* window) :
     coordinates(simSize, renderer.getOutputSize(), cellSize),
     gridTexture{createGridTexture(renderer, coordinates)},
     renderTexture{createRenderTexture(renderer, coordinates)},
-    simulation{simSize.w, Patterns::acorn()},
+    simulation{simSize, Patterns::acorn()},
     nuklearSdl{window->getRaw(), renderer.getRaw(), "assets/Cousine-Regular.ttf", 16},
     gui{&nuklearSdl.getContext(), loadAllPatterns(), {&displayGrid, &updateSpeedPower, &paused, &cellSize, &selectedPattern, &modalGui}} {
     resetSimClock();
@@ -206,7 +206,7 @@ void Game::runBenchmark() {
     };
     std::string message;
     for (const auto& pattern : patterns) {
-        Simulation sim{simSize.w, pattern.first};
+        Simulation sim{simSize, pattern.first};
         GameClock benchClock;
         for (int j = 0; j < pattern.second; j++) {
             sim.nextStep();
@@ -308,7 +308,7 @@ void Game::renderCells() const {
     for (int y = 0; y < coordinates.grid().h; y++) {
         for (int x = 0; x < coordinates.grid().w; x++) {
             Point p = coordinates.gridToSim({x, y});
-            if (p.x >= 0 && p.y >= 0 && p.x < simulation.size() && p.y < simulation.size() && simulation.get(p.x, p.y) == CellState::ALIVE) {
+            if (p.x >= 0 && p.y >= 0 && p.x < simulation.size().w && p.y < simulation.size().h && simulation.get(p.x, p.y) == CellState::ALIVE) {
                 alives.push_back({x, y});
             }
         }

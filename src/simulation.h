@@ -20,27 +20,27 @@ class Simulation
 {
 public:
 
-    explicit Simulation(int size, const Pattern& pattern = {});
+    explicit Simulation(Size size, const Pattern& pattern = {});
 
-    [[nodiscard]] CellState get(int x, int y) const { return matrix[y * m_size + x]; }
+    [[nodiscard]] CellState get(int x, int y) const { return matrix[y * m_size.w + x]; }
     void set(int x, int y, CellState cellState);
-    [[nodiscard]] int size() const { return m_size; }
+    [[nodiscard]] Size size() const { return m_size; }
 
     void nextStep();
 
 private:
-    using TChangeList = robin_hood::unordered_set<size_t>;
+    using TChangeList = robin_hood::unordered_set<int>;
     TChangeList m_changeList{};
 
-    int m_size;
+    Size m_size;
 
     std::vector<CellState> matrix;
 
     void init(const Pattern& pattern);
 
-    void updateCell(size_t index);
+    void updateCell(int index);
 
-    void incrementalSet(size_t index, CellState state);
+    void updateChangeList(int index, CellState state);
 };
 
 }  // namespace app
