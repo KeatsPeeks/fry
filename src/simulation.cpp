@@ -12,29 +12,26 @@ Simulation::Simulation(int size, const Pattern& pattern) : m_size{size} {
     for (int i = 0; i < size; ++i) {
         matrix[i].resize(size);
     }
-    matrixCopy = matrix;
     init(pattern);
 }
 
 void Simulation::set(int x, int y, CellState cellState) {
-    incrementalSet(x, y, cellState);
+    incrementalSet({cellState, x, y});
+    matrix[y][x] = cellState;
 }
 
-void Simulation::incrementalSet(int x, int y, CellState cellState) {
-    if (x <= 1 || y <= 1 || x >= m_size - 2 || y >= m_size - 2) {
+void Simulation::incrementalSet(const Cell& p) {
+    if (p.x <= 1 || p.y <= 1 || p.x >= m_size - 2 || p.y >= m_size - 2) {
         return;
     }
-    matrix[y][x] = cellState == CellState::ALIVE;
 
-    if (matrixCopy[y][x] != matrix[y][x]) {
-        m_changeList.insert({x, y});
+    if (matrix[p.y][p.x] != p.alive) {
+        m_changeList.insert(p);
     }
 }
 
 void Simulation::nextStep() {
-    std::copy(matrix.cbegin(), matrix.cend(), matrixCopy.begin());
-
-    std::vector<Point> changeListCopy{m_changeList.cbegin(), m_changeList.cend()};
+    std::vector<Cell> changeListCopy{m_changeList.cbegin(), m_changeList.cend()};
 
     m_changeList.clear();
 
@@ -51,27 +48,31 @@ void Simulation::nextStep() {
         updateCell(x, y + 1);
         updateCell(x + 1, y + 1);
     }
+
+    for (const Cell& p : m_changeList) {
+        matrix[p.y][p.x] = p.alive;
+    }
 }
 
 void Simulation::updateCell(int x, int y) {
     int nbAliveNeighbours = 0;
 
-    nbAliveNeighbours += matrixCopy[y - 1][x - 1] ? 1 : 0;
-    nbAliveNeighbours += matrixCopy[y - 1][x] ? 1 : 0;
-    nbAliveNeighbours += matrixCopy[y - 1][x + 1] ? 1 : 0;
-    nbAliveNeighbours += matrixCopy[y][x - 1] ? 1 : 0;
-    bool alive = matrixCopy[y][x];
-    nbAliveNeighbours += matrixCopy[y][x + 1] ? 1 : 0;
-    nbAliveNeighbours += matrixCopy[y + 1][x - 1] ? 1 : 0;
-    nbAliveNeighbours += matrixCopy[y + 1][x] ? 1 : 0;
-    nbAliveNeighbours += matrixCopy[y + 1][x + 1] ? 1 : 0;
+    nbAliveNeighbours += matrix[y - 1][x - 1];
+    nbAliveNeighbours += matrix[y - 1][x];
+    nbAliveNeighbours += matrix[y - 1][x + 1];
+    nbAliveNeighbours += matrix[y][x - 1];
+    CellState state = matrix[y][x];
+    nbAliveNeighbours += matrix[y][x + 1];
+    nbAliveNeighbours += matrix[y + 1][x - 1];
+    nbAliveNeighbours += matrix[y + 1][x];
+    nbAliveNeighbours += matrix[y + 1][x + 1];
     if (nbAliveNeighbours == 3) {
-        alive = true; // birth
-    } else if (alive && nbAliveNeighbours != 2) {
-        alive = false; // death;
+        state = ALIVE; // birth
+    } else if (state == ALIVE && nbAliveNeighbours != 2) {
+        state = DEAD; // death;
     }
 
-    incrementalSet(x, y, alive ? CellState::ALIVE : CellState::DEAD);
+    incrementalSet({state, x, y});
 }
 
 void Simulation::init(const Pattern& pattern) {

@@ -298,7 +298,7 @@ void Game::renderCells() const {
     for (int y = 0; y < coordinates.grid().h; y++) {
         for (int x = 0; x < coordinates.grid().w; x++) {
             Point p = coordinates.gridToSim({x, y});
-            if (p.x >= 0 && p.y >= 0 && p.x < simulation.size() && p.y < simulation.size() && simulation.get(p.x, p.y)) {
+            if (p.x >= 0 && p.y >= 0 && p.x < simulation.size() && p.y < simulation.size() && simulation.get(p.x, p.y) == CellState::ALIVE) {
                 alives.push_back({x, y});
             }
         }

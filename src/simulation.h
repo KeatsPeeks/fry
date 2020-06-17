@@ -13,14 +13,22 @@
 
 namespace app {
 
-enum class CellState {
+enum CellState : uint8_t {
     DEAD,
     ALIVE
 };
 
+struct Cell {
+    CellState alive;
+    int x;
+    int y;
+
+    bool operator==(const Cell& p) const { return p.x == x && p.y == y; };
+};
+
 struct point_hash
 {
-    int operator ()(const Point& point) const
+    int operator ()(const Cell& point) const
     {
         return point.x ^ point.y;
     }
@@ -30,13 +38,13 @@ class Simulation
 {
 #ifdef ENABLE_PMR
 public:
-    using TChangeList = std::pmr::unordered_set<Point, point_hash>;
+    using TChangeList = std::pmr::unordered_set<Cell, point_hash>;
 private:
     static std::pmr::unsynchronized_pool_resource pool;
     TChangeList m_changeList{&pool};
 #else
 public:
-    using TChangeList = std::unordered_set<Point, point_hash>;
+    using TChangeList = std::unordered_set<Cell, point_hash>;
 private:
     TChangeList m_changeList{};
 #endif
@@ -46,7 +54,7 @@ public:
 
     explicit Simulation(int size, const Pattern& pattern = {});
 
-    [[nodiscard]] bool get(int x, int y) const { return matrix[y][x]; }
+    [[nodiscard]] CellState get(int x, int y) const { return matrix[y][x]; }
     void set(int x, int y, CellState cellState);
     [[nodiscard]] int size() const { return m_size; }
 
@@ -56,14 +64,13 @@ public:
 private:
     int m_size;
 
-    std::vector<std::vector<bool>> matrix;
-    std::vector<std::vector<bool>> matrixCopy;
+    std::vector<std::vector<CellState>> matrix;
 
     void init(const Pattern& pattern);
 
     void updateCell(int x, int y);
 
-    void incrementalSet(int x, int y, CellState cellState);
+    void incrementalSet(const Cell& p);
 };
 
 }  // namespace app
