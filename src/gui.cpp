@@ -122,7 +122,7 @@ void Gui::mainMenu(const Size &viewPort) {
         return;
     }
 
-    const Size margin = {2, 0};
+    const Size margin = {0, -2};
     const Size panelSize = {200, viewPort.h};
     Rect panelRect = {{viewPort.w - panelSize.w - margin.w, margin.h}, panelSize};
     if (0 != nk_begin(pNuklearCtx, "main", to_nk_rect(panelRect), NK_WINDOW_NO_SCROLLBAR)) {
