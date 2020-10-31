@@ -3,9 +3,9 @@ environment:
     secure:
       jsPv246qH9Lwg0FuzMy7rlz/TU+1tFaHKVEgRn/aG22kJ7MoBTXyvQaPrOL3EnHV
   matrix:
-  #  - job_name: Windows-MSVC
-  #    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-  #    APP_NAME: win
+    - job_name: Windows-MSVC
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      APP_NAME: win
     - job_name: Linux-Clang
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
       CXX: clang++
