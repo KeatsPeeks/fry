@@ -35,6 +35,7 @@ namespace app::sdl {
             return wrapper.get();
         }
 
+        SdlResource() : wrapper{nullptr, nullptr} {}
         SdlResource(const SdlResource& right) = delete;
         SdlResource<T>& operator=(const SdlResource& right) = delete;
 
@@ -51,6 +52,7 @@ namespace app::sdl {
 
     class Texture : public SdlResource<SDL_Texture> {
     public:
+        explicit Texture() : SdlResource() {}
         explicit Texture(SDL_Texture* pTexture) : SdlResource(make_unique(pTexture, SDL_DestroyTexture)) {}
 
         void setBlendMode(SDL_BlendMode blendMode) const {

@@ -28,6 +28,12 @@ public:
 
     void nextStep();
 
+    Simulation(const Simulation& right) = delete;
+    Simulation& operator=(const Simulation& right) = delete;
+    Simulation(Simulation&& right) noexcept = delete;
+    Simulation& operator=(Simulation&& right) noexcept = delete;
+    ~Simulation() = default;
+
 private:
     using TChangeList = robin_hood::unordered_set<int>;
     TChangeList changeList{};

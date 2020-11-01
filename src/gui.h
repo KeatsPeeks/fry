@@ -4,6 +4,8 @@
 #include "pattern.h"
 #include "sdl_wrappers.h"
 
+#include <string>
+
 namespace app {
 
 struct GuiBindings {
@@ -13,6 +15,15 @@ struct GuiBindings {
     int* cellSize;
     const Pattern** selectedPattern;
     bool* patternModalOpened;
+    bool* step;
+    bool* clear;
+
+    int* iteration;
+};
+
+struct NkIcon {
+    sdl::Texture texture;
+    struct nk_image image;
 };
 
 class Gui {
@@ -26,6 +37,10 @@ private:
     std::vector<Pattern> patterns;
     std::vector<sdl::Texture> patternTextures;
     std::vector<struct nk_image> patternImages;
+    NkIcon playIcon;
+    NkIcon pauseIcon;
+    NkIcon nextIcon;
+    std::string iteration = "0";
 
     void mainMenu(const Size &viewPort);
     void patternMenu(const sdl::Renderer& renderer);

@@ -1,5 +1,6 @@
-#include "gui.h"
+#include "../deps/SDL2_gfx/SDL2_gfxPrimitives.h"
 
+#include "gui.h"
 #include "colors.h"
 
 #include <array>
@@ -66,6 +67,42 @@ namespace {
         return textures;
     }
 
+    sdl::Texture pause(const sdl::Renderer &renderer) {
+        int texSize = 128;
+        sdl::Texture texture{SDL_CreateTexture(renderer.getRaw(), SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, texSize, texSize)};
+        texture.setBlendMode(SDL_BLENDMODE_BLEND);
+        renderer.setTarget(texture.getRaw());
+
+        thickLineRGBA(renderer.getRaw(), 42, 12, 42, 116, 24, 52, 119, 235, 255);
+        thickLineRGBA(renderer.getRaw(), 86, 12, 86, 116, 24, 52, 119, 235, 255);
+
+        renderer.setTarget(nullptr);
+        return texture;
+    }
+
+    sdl::Texture play(const sdl::Renderer &renderer) {
+        int texSize = 128;
+        sdl::Texture texture{SDL_CreateTexture(renderer.getRaw(), SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, texSize, texSize)};
+        texture.setBlendMode(SDL_BLENDMODE_BLEND);
+        renderer.setTarget(texture.getRaw());
+        filledTrigonRGBA(renderer.getRaw(), 30, 12, 98, 64, 30,116, 52, 119, 235, 255);
+
+        renderer.setTarget(nullptr);
+        return texture;
+    }
+
+    sdl::Texture next(const sdl::Renderer &renderer) {
+        int texSize = 128;
+        sdl::Texture texture{SDL_CreateTexture(renderer.getRaw(), SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, texSize, texSize)};
+        texture.setBlendMode(SDL_BLENDMODE_BLEND);
+        renderer.setTarget(texture.getRaw());
+        filledTrigonRGBA(renderer.getRaw(), 30, 12, 98, 64, 30,116, 52, 119, 235, 255);
+        thickLineRGBA(renderer.getRaw(), 98, 12, 98, 116, 16, 52, 119, 235, 255);
+
+        renderer.setTarget(nullptr);
+        return texture;
+    }
+
     constexpr int minSpeed = 0;
     constexpr int maxSpeed = 10;
     constexpr int minCellSize = 1;
@@ -110,9 +147,25 @@ Gui::Gui(nk_context* pNuklearCtx, std::vector<Pattern> patterns, GuiBindings bin
 }
 
 void Gui::update(const sdl::Renderer& renderer) {
+    // no menu when placing a pattern
     if (*bindings.selectedPattern != nullptr) {
         return;
     }
+
+    // on-demand texture loading
+    if (playIcon.texture.getRaw() == nullptr) {
+        playIcon.texture = play(renderer);
+        playIcon.image = nk_image_ptr(playIcon.texture.getRaw());
+    }
+    if (pauseIcon.texture.getRaw() == nullptr) {
+        pauseIcon.texture = pause(renderer);
+        pauseIcon.image = nk_image_ptr(pauseIcon.texture.getRaw());
+    }
+    if (nextIcon.texture.getRaw() == nullptr) {
+        nextIcon.texture = next(renderer);
+        nextIcon.image = nk_image_ptr(nextIcon.texture.getRaw());
+    }
+
     patternMenu(renderer);
     mainMenu(renderer.getOutputSize());
 }
@@ -128,12 +181,21 @@ void Gui::mainMenu(const Size &viewPort) {
     if (0 != nk_begin(pNuklearCtx, "main", to_nk_rect(panelRect), NK_WINDOW_NO_SCROLLBAR)) {
         nk_layout_row_dynamic(pNuklearCtx, 8, 1);
 
-        // Play/Pause button
-        nk_layout_row_dynamic(pNuklearCtx, 0, 1);
-        const char* text = *bindings.paused ? "Run" : "Pause";
-        if (1 == nk_button_label(pNuklearCtx, text)) {
+        // Buttons
+        nk_layout_row_begin(pNuklearCtx, NK_DYNAMIC, 0, 3);
+        struct nk_style_button style = pNuklearCtx->style.button;
+        nk_layout_row_push(pNuklearCtx, 0.25F);
+        if (1 == nk_button_image_styled(pNuklearCtx, &style, *bindings.paused ? playIcon.image : pauseIcon.image)) {
             *bindings.paused = !*bindings.paused;
         }
+        nk_layout_row_push(pNuklearCtx, 0.25F);
+        if (1 == nk_button_image_styled(pNuklearCtx, &style, nextIcon.image)) {
+            *bindings.step = true;
+        }
+        nk_layout_row_push(pNuklearCtx, 0.5F);
+        iteration = std::to_string(*bindings.iteration);
+        nk_text(pNuklearCtx, iteration.c_str(), 12, NK_TEXT_ALIGN_RIGHT | NK_TEXT_ALIGN_MIDDLE);
+        nk_layout_row_end(pNuklearCtx);
 
         // Grid checkbox
         nk_layout_row_dynamic(pNuklearCtx, 50, 1);
@@ -149,16 +211,22 @@ void Gui::mainMenu(const Size &viewPort) {
 
         // Size slider
         nk_layout_row_dynamic(pNuklearCtx, 20, 1);
-        nk_label(pNuklearCtx, "Cell size:", NK_TEXT_ALIGN_LEFT);
+        nk_label(pNuklearCtx, "Zoom level:", NK_TEXT_ALIGN_LEFT);
         nk_layout_row_dynamic(pNuklearCtx, 16, 1);
         nk_slider_int(pNuklearCtx, minCellSize, bindings.cellSize, maxCellSize, 1);
         nk_layout_row_dynamic(pNuklearCtx, 0, 1);
-        nk_label(pNuklearCtx, fmt::format("{} px", *bindings.cellSize).c_str(), NK_TEXT_ALIGN_CENTERED | NK_TEXT_ALIGN_TOP);
+        nk_label(pNuklearCtx, fmt::format("{}", *bindings.cellSize).c_str(), NK_TEXT_ALIGN_CENTERED | NK_TEXT_ALIGN_TOP);
 
         // patterns
         nk_layout_row_dynamic(pNuklearCtx, 0, 1);
-        if (1 == nk_button_label(pNuklearCtx, "Pattern...")) {
+        if (1 == nk_button_label(pNuklearCtx, "Load Pattern...")) {
             *bindings.patternModalOpened = true;
+        }
+
+        // clear
+        nk_layout_row_dynamic(pNuklearCtx, 0, 1);
+        if (1 == nk_button_label(pNuklearCtx, "Clear")) {
+            *bindings.clear = true;
         }
     }
     nk_end(pNuklearCtx);
@@ -169,13 +237,20 @@ void Gui::patternMenu(const sdl::Renderer& renderer) {
         return;
     }
 
-    // Render pattern images on first use
+    // Render textures on first use
     if (patternImages.empty() && !patterns.empty()) {
         patternTextures = loadTextures(renderer, patterns);
         for (const sdl::Texture& tex : patternTextures) {
             patternImages.push_back(nk_image_ptr(tex.getRaw()));
         }
     }
+
+    comprends pas.
+    on a :
+    - rajouté des boutons
+    - rajouté le clear
+    Et quand on redimenssionne/pattern/clear plein de fois ça finit par perdre les textures dans nuklear. en debug elles existent encore (pointeur non nul en tout cas).
+    quelle est la baise ?
 
     auto spacingPush = pNuklearCtx->style.window.spacing;
 

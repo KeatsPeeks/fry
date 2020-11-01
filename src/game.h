@@ -57,11 +57,13 @@ private:
     bool paused = true;
     bool benchmark = false;
     bool step = false;
+    bool clear = false;
 
     // status
     const Pattern* selectedPattern = nullptr;
     bool modalGui = false;
     bool gridAutoDisabled = false;
+    int iteration = 0;
 
     // options
     int displayGrid = 1;
@@ -76,8 +78,9 @@ private:
     Coordinates coordinates;
     sdl::Texture gridTexture;
     sdl::Texture renderTexture;
-    Simulation simulation;
+    std::unique_ptr<Simulation> simulation;
     NuklearSdl nuklearSdl;
+    GuiBindings bindings;
     Gui gui;
     Point mouse;
 

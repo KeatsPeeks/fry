@@ -83,9 +83,10 @@ Game::Game(sdl::Window* window) :
     coordinates(simSize, renderer.getOutputSize(), cellSize),
     gridTexture{createGridTexture(renderer, coordinates)},
     renderTexture{createRenderTexture(renderer, coordinates)},
-    simulation{simSize, Patterns::acorn()},
+    simulation{std::make_unique<Simulation>(simSize, Patterns::acorn())},
     nuklearSdl{window->getRaw(), renderer.getRaw(), "assets/Cousine-Regular.ttf", 16},
-    gui{&nuklearSdl.getContext(), loadAllPatterns(), {&displayGrid, &updateSpeedPower, &paused, &cellSize, &selectedPattern, &modalGui}} {
+    bindings{&displayGrid, &updateSpeedPower, &paused, &cellSize, &selectedPattern, &modalGui, &step, &clear, &iteration},
+    gui{&nuklearSdl.getContext(), loadAllPatterns(), bindings} {
     resetSimClock();
 }
 
@@ -185,11 +186,19 @@ void Game::update() {
         return;
     }
 
+    if (clear) {
+        simulation = std::make_unique<Simulation>(simSize);
+        iteration = 0;
+        clear = false;
+        paused = true;
+    }
+
     if (paused) {
         resetSimClock();
 
         if (step) {
-            simulation.nextStep();
+            simulation->nextStep();
+            iteration++;
             step = false;
         }
         return;
@@ -197,7 +206,8 @@ void Game::update() {
 
     GameTime time = simClock.update();
     while (time.totalTime.count() >= nextSimUpdate) {
-        simulation.nextStep();
+        simulation->nextStep();
+        iteration++;
         nextSimUpdate += 1. / (1 << updateSpeedPower);
         if (minFpsClock.update().totalTime.count() > 1. / minFps) {
             // frame time is too large => throttle
@@ -238,7 +248,7 @@ void Game::resetSimClock() {
 void Game::mouseEdit(CellState cellState) {
     if (paused) {
         const Point point = coordinates.windowToSim(mouse);
-        simulation.set(point.x, point.y, cellState);
+        simulation->set(point.x, point.y, cellState);
     }
 }
 
@@ -258,7 +268,7 @@ void Game::placeSelectedPattern() {
     const Point origin = coordinates.windowToSim(mouse) - offset;
     std::vector<SDL_Point> patternCells;
     for (const Point& p : selectedPattern->aliveCells()) {
-        simulation.set(origin.x + p.x, origin.y + p.y, CellState::ALIVE);
+        simulation->set(origin.x + p.x, origin.y + p.y, CellState::ALIVE);
     }
 
     selectedPattern = nullptr;
@@ -317,7 +327,7 @@ void Game::renderCells() const {
     for (int y = 0; y < coordinates.grid().h; y++) {
         for (int x = 0; x < coordinates.grid().w; x++) {
             Point p = coordinates.gridToSim({x, y});
-            if (p.x >= 0 && p.y >= 0 && p.x < simulation.size().w && p.y < simulation.size().h && simulation.get(p.x, p.y) == CellState::ALIVE) {
+            if (p.x >= 0 && p.y >= 0 && p.x < simulation->size().w && p.y < simulation->size().h && simulation->get(p.x, p.y) == CellState::ALIVE) {
                 alives.push_back({x, y});
             }
         }
