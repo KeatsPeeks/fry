@@ -102,6 +102,8 @@ if(MSVC)
     # WIN32: changes the subsytem from console to Windows to prevent extra console windows creation
     set(WIN32_EXE "WIN32")
 
+    set(WIN32_EXTRA_FILES "resources.rc")
+
     # LNK4099: informs us that the linker cannot find debug info pour external librairies; we don't care
     # LNK4075: "ignoring '/INCREMENTAL' due to '/OPT:REF' specification"
     # /OPT:Ref: always eliminates functions and data that are never referenced, even with debug info
@@ -131,7 +133,7 @@ set(APP_FILES
         src/simulation.h
         src/version.h
 )
-add_executable(${CMAKE_PROJECT_NAME} ${WIN32_EXE} ${SDL2_GFX_FILES} ${NUKLEAR_FILES} ${APP_FILES})
+add_executable(${CMAKE_PROJECT_NAME} ${WIN32_EXE} ${SDL2_GFX_FILES} ${NUKLEAR_FILES} ${APP_FILES} ${WIN32_EXTRA_FILES})
 
 # use the non-debug versions for RelWithDebInfo and MinSizeRel build types
 set_target_properties(SDL2::SDL2 SDL2::SDL2main spdlog::spdlog fmt::fmt SDL_ttf::SDL_ttf ZLIB::zlib PNG::png BZip2::bz2 freetype::freetype PROPERTIES

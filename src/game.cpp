@@ -326,7 +326,7 @@ void Game::renderCells() {
 
     std::vector<SDL_Point> alives;
     std::vector<SDL_Point> deads;
-    if (forceFullRedraw) {
+    if (forceFullRedraw || selectedPattern != nullptr) {
         // FULL mode
         renderer.setDrawColor(Color::DeadCell);
         renderer.fillRect(nullptr);
