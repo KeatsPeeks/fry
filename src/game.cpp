@@ -14,7 +14,7 @@ namespace app {
 
 namespace {
 
-    constexpr Size simSize{2816, 1584};
+    constexpr Size simSize{11264, 6336};
     constexpr double minFps = 45.;
 
     bool isMouseEvent(const SDL_Event& e) {
@@ -200,6 +200,7 @@ void Game::update() {
 
         if (step) {
             simulation->nextStep();
+            forceFullRedraw = true;
             iteration++;
             step = false;
         }
