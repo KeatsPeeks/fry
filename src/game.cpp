@@ -79,7 +79,7 @@ Game::Game(sdl::Window* window) :
     cursor{SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR)},
     guiCursor{SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW)},
     pointerCursor{SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND)},
-    renderer{SDL_CreateRenderer(window->getRaw(), -1, SDL_RENDERER_ACCELERATED)},
+    renderer{SDL_CreateRenderer(window->getRaw(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)},
     coordinates(simSize, renderer.getOutputSize(), cellSize),
     gridTexture{createGridTexture(renderer, coordinates)},
     renderTexture{createRenderTexture(renderer, coordinates)},
