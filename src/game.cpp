@@ -324,13 +324,14 @@ void Game::renderGrid() const {
 void Game::renderCells() {
     renderer.setTarget(renderTexture.getRaw());
 
-    std::vector<SDL_Point> alives;
-    std::vector<SDL_Point> deads;
     if (forceFullRedraw || selectedPattern != nullptr) {
+
         // FULL mode
+
         renderer.setDrawColor(Color::DeadCell);
         renderer.fillRect(nullptr);
 
+        std::vector<SDL_Point> alives;
         forceFullRedraw = false;
         for (int y = 0; y < coordinates.grid().h; y++) {
             for (int x = 0; x < coordinates.grid().w; x++) {
@@ -340,8 +341,18 @@ void Game::renderCells() {
                 }
             }
         }
+
+        if (!alives.empty()) {
+            renderer.setDrawColor(Color::AliveCell);
+            renderer.drawPoints(alives);
+        }
     } else {
+
         // DELTA mode
+
+        std::vector<SDL_Point> alives;
+        std::vector<SDL_Point> deads;
+
         for (const auto& update : lastUpdates) {
             for (const Cell& cell : *update) {
                 Point p = coordinates.simToGrid({cell.x, cell.y});
@@ -350,16 +361,19 @@ void Game::renderCells() {
                     ref.push_back({p.x, p.y});
                 }
             }
+
+            if (!alives.empty()) {
+                renderer.setDrawColor(Color::AliveCell);
+                renderer.drawPoints(alives);
+            }
+            if (!deads.empty()) {
+                renderer.setDrawColor(Color::DeadCell);
+                renderer.drawPoints(deads);
+            }
+            alives.clear();
+            deads.clear();
         }
         lastUpdates.clear();
-    }
-    if (!alives.empty()) {
-        renderer.setDrawColor(Color::AliveCell);
-        renderer.drawPoints(alives);
-    }
-    if (!deads.empty()) {
-        renderer.setDrawColor(Color::DeadCell);
-        renderer.drawPoints(deads);
     }
 
     renderer.setTarget(nullptr);
