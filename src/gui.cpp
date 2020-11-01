@@ -1,6 +1,7 @@
+#include "gui.h"
+
 #include "../deps/SDL2_gfx/SDL2_gfxPrimitives.h"
 
-#include "gui.h"
 #include "colors.h"
 
 #include <array>
@@ -146,6 +147,13 @@ Gui::Gui(nk_context* pNuklearCtx, std::vector<Pattern> patterns, GuiBindings bin
     *bindings.selectedPattern = nullptr;
 }
 
+void Gui::onSdlContextLost() {
+    patternImages.clear();
+    playIcon.reset();
+    pauseIcon.reset();
+    nextIcon.reset();
+}
+
 void Gui::update(const sdl::Renderer& renderer) {
     // no menu when placing a pattern
     if (*bindings.selectedPattern != nullptr) {
@@ -153,17 +161,20 @@ void Gui::update(const sdl::Renderer& renderer) {
     }
 
     // on-demand texture loading
-    if (playIcon.texture.getRaw() == nullptr) {
-        playIcon.texture = play(renderer);
-        playIcon.image = nk_image_ptr(playIcon.texture.getRaw());
+    if (!playIcon) {
+        playIcon = std::make_unique<NkIcon>();
+        playIcon->texture = play(renderer);
+        playIcon->image = nk_image_ptr(playIcon->texture.getRaw());
     }
-    if (pauseIcon.texture.getRaw() == nullptr) {
-        pauseIcon.texture = pause(renderer);
-        pauseIcon.image = nk_image_ptr(pauseIcon.texture.getRaw());
+    if (!pauseIcon) {
+        pauseIcon = std::make_unique<NkIcon>();
+        pauseIcon->texture = pause(renderer);
+        pauseIcon->image = nk_image_ptr(pauseIcon->texture.getRaw());
     }
-    if (nextIcon.texture.getRaw() == nullptr) {
-        nextIcon.texture = next(renderer);
-        nextIcon.image = nk_image_ptr(nextIcon.texture.getRaw());
+    if (!nextIcon) {
+        nextIcon = std::make_unique<NkIcon>();
+        nextIcon->texture = next(renderer);
+        nextIcon->image = nk_image_ptr(nextIcon->texture.getRaw());
     }
 
     patternMenu(renderer);
@@ -185,11 +196,11 @@ void Gui::mainMenu(const Size &viewPort) {
         nk_layout_row_begin(pNuklearCtx, NK_DYNAMIC, 0, 3);
         struct nk_style_button style = pNuklearCtx->style.button;
         nk_layout_row_push(pNuklearCtx, 0.25F);
-        if (1 == nk_button_image_styled(pNuklearCtx, &style, *bindings.paused ? playIcon.image : pauseIcon.image)) {
+        if (1 == nk_button_image_styled(pNuklearCtx, &style, *bindings.paused ? playIcon->image : pauseIcon->image)) {
             *bindings.paused = !*bindings.paused;
         }
         nk_layout_row_push(pNuklearCtx, 0.25F);
-        if (1 == nk_button_image_styled(pNuklearCtx, &style, nextIcon.image)) {
+        if (1 == nk_button_image_styled(pNuklearCtx, &style, nextIcon->image)) {
             *bindings.step = true;
         }
         nk_layout_row_push(pNuklearCtx, 0.5F);
@@ -245,13 +256,6 @@ void Gui::patternMenu(const sdl::Renderer& renderer) {
         }
     }
 
-    comprends pas.
-    on a :
-    - rajouté des boutons
-    - rajouté le clear
-    Et quand on redimenssionne/pattern/clear plein de fois ça finit par perdre les textures dans nuklear. en debug elles existent encore (pointeur non nul en tout cas).
-    quelle est la baise ?
-
     auto spacingPush = pNuklearCtx->style.window.spacing;
 
     const int spacing = 20;
@@ -261,6 +265,8 @@ void Gui::patternMenu(const sdl::Renderer& renderer) {
     style.hover.data.color = nk_rgba(48, 89, 254, 255);
     if (0 != nk_begin(pNuklearCtx, "patterns", to_nk_rect(menuRect), 0)) {
         nk_layout_row_dynamic(pNuklearCtx, 0, 1);
+
+        // drawn row by row
         const int nbCols = (menuRect.size.w - spacing) / (widgetSize + spacing);
         for (size_t row = 0; row * nbCols < patterns.size(); ++row) {
             // pictures

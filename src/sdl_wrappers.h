@@ -52,7 +52,7 @@ namespace app::sdl {
 
     class Texture : public SdlResource<SDL_Texture> {
     public:
-        explicit Texture() : SdlResource() {}
+        explicit Texture() = default;
         explicit Texture(SDL_Texture* pTexture) : SdlResource(make_unique(pTexture, SDL_DestroyTexture)) {}
 
         void setBlendMode(SDL_BlendMode blendMode) const {
@@ -124,11 +124,14 @@ namespace app::sdl {
             check(SDL_RenderDrawPoint(getRaw(), point.x, point.y));
         }
         void drawPoints(std::span<SDL_Point> points) const {
+#ifdef __EMSCRIPTEN__
             // Weird bugs with SDL_RenderDrawPoints on the browser
-            // check(SDL_RenderDrawPoints(getRaw(), &points[0], static_cast<int>(points.size())));
             for (auto p : points) {
                 check(SDL_RenderDrawPoint(getRaw(), p.x, p.y));
             }
+#else
+            check(SDL_RenderDrawPoints(getRaw(), &points[0], static_cast<int>(points.size())));
+#endif
         }
 
         [[nodiscard]] Size getOutputSize() const {

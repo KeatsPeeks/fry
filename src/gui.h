@@ -30,6 +30,7 @@ class Gui {
 public:
     Gui(nk_context* pNuklearCtx, std::vector<Pattern> patterns, GuiBindings bindings);
     void update(const sdl::Renderer& renderer);
+    void onSdlContextLost();
 
 private:
     nk_context* pNuklearCtx = nullptr;
@@ -37,9 +38,9 @@ private:
     std::vector<Pattern> patterns;
     std::vector<sdl::Texture> patternTextures;
     std::vector<struct nk_image> patternImages;
-    NkIcon playIcon;
-    NkIcon pauseIcon;
-    NkIcon nextIcon;
+    std::unique_ptr<NkIcon> playIcon;
+    std::unique_ptr<NkIcon> pauseIcon;
+    std::unique_ptr<NkIcon> nextIcon;
     std::string iteration = "0";
 
     void mainMenu(const Size &viewPort);

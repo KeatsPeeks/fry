@@ -99,6 +99,11 @@ void Game::handleEvents(std::span<SDL_Event> events, bool mouseOnGui) {
         }
 
         switch (event.type) {
+            case SDL_RENDER_TARGETS_RESET: {
+                gridTexture = createGridTexture(renderer, coordinates);
+                gui.onSdlContextLost();
+            }
+
             case SDL_WINDOWEVENT: {
                 if (SDL_WINDOWEVENT_RESIZED == event.window.event) {
                     onCoordinatesChanged();
