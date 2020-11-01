@@ -64,6 +64,8 @@ private:
     bool modalGui = false;
     bool gridAutoDisabled = false;
     int iteration = 0;
+    bool forceFullRedraw = true;
+    std::vector<std::shared_ptr<std::vector<Cell>>> lastUpdates;
 
     // options
     int displayGrid = 1;
@@ -96,7 +98,7 @@ private:
 
     void resetSimClock();
 
-    void renderCells() const;
+    void renderCells();
     void renderGrid() const;
     void renderSelectedPattern() const;
 

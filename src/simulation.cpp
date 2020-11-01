@@ -37,8 +37,11 @@ void Simulation::nextStep() {
         }
     }
 
+    lastUpdatedCells = std::make_shared<std::vector<Cell>>();
     for (int p : *writeChangeList) {
-        matrix[p] = matrix[p] == ALIVE ? DEAD : ALIVE;
+        CellState state = matrix[p] == ALIVE ? DEAD : ALIVE;
+        matrix[p] = state;
+        lastUpdatedCells->push_back({p % m_size.w, p / m_size.w, state});
     }
 }
 

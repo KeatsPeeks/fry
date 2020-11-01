@@ -188,9 +188,11 @@ void Game::update() {
 
     if (clear) {
         simulation = std::make_unique<Simulation>(simSize);
+        lastUpdates.clear();
         iteration = 0;
         clear = false;
         paused = true;
+        forceFullRedraw = true;
     }
 
     if (paused) {
@@ -207,6 +209,7 @@ void Game::update() {
     GameTime time = simClock.update();
     while (time.totalTime.count() >= nextSimUpdate) {
         simulation->nextStep();
+        lastUpdates.push_back(simulation->updatedCells());
         iteration++;
         nextSimUpdate += 1. / (1 << updateSpeedPower);
         if (minFpsClock.update().totalTime.count() > 1. / minFps) {
@@ -256,6 +259,7 @@ void Game::onCoordinatesChanged() {
     coordinates = Coordinates{simSize, renderer.getOutputSize(), cellSize};
     gridTexture = createGridTexture(renderer, coordinates);
     renderTexture = createRenderTexture(renderer, coordinates);
+    forceFullRedraw = true;
 }
 
 void Game::placeSelectedPattern() {
@@ -270,6 +274,7 @@ void Game::placeSelectedPattern() {
     for (const Point& p : selectedPattern->aliveCells()) {
         simulation->set(origin.x + p.x, origin.y + p.y, CellState::ALIVE);
     }
+    forceFullRedraw = true;
 
     selectedPattern = nullptr;
 }
@@ -315,26 +320,45 @@ void Game::renderGrid() const {
     }
 }
 
-void Game::renderCells() const {
+void Game::renderCells() {
     renderer.setTarget(renderTexture.getRaw());
 
-    // dead cells
-    renderer.setDrawColor(Color::DeadCell);
-    renderer.fillRect(nullptr);
-
-    // alive cells
     std::vector<SDL_Point> alives;
-    for (int y = 0; y < coordinates.grid().h; y++) {
-        for (int x = 0; x < coordinates.grid().w; x++) {
-            Point p = coordinates.gridToSim({x, y});
-            if (p.x >= 0 && p.y >= 0 && p.x < simulation->size().w && p.y < simulation->size().h && simulation->get(p.x, p.y) == CellState::ALIVE) {
-                alives.push_back({x, y});
+    std::vector<SDL_Point> deads;
+    if (forceFullRedraw) {
+        // FULL mode
+        renderer.setDrawColor(Color::DeadCell);
+        renderer.fillRect(nullptr);
+
+        forceFullRedraw = false;
+        for (int y = 0; y < coordinates.grid().h; y++) {
+            for (int x = 0; x < coordinates.grid().w; x++) {
+                Point p = coordinates.gridToSim({x, y});
+                if (p.x >= 0 && p.y >= 0 && p.x < simulation->size().w && p.y < simulation->size().h && simulation->get(p.x, p.y) == CellState::ALIVE) {
+                    alives.push_back({x, y});
+                }
             }
         }
+    } else {
+        // DELTA mode
+        for (const auto& update : lastUpdates) {
+            for (const Cell& cell : *update) {
+                Point p = coordinates.simToGrid({cell.x, cell.y});
+                if (p.x >= 0 && p.y >= 0 && p.x < coordinates.grid().w && p.y < coordinates.grid().h) {
+                    std::vector<SDL_Point>& ref = cell.state == CellState::ALIVE ? alives : deads;
+                    ref.push_back({p.x, p.y});
+                }
+            }
+        }
+        lastUpdates.clear();
     }
     if (!alives.empty()) {
         renderer.setDrawColor(Color::AliveCell);
         renderer.drawPoints(alives);
+    }
+    if (!deads.empty()) {
+        renderer.setDrawColor(Color::DeadCell);
+        renderer.drawPoints(deads);
     }
 
     renderer.setTarget(nullptr);
@@ -348,6 +372,7 @@ bool Game::mainLoop() {
         if (SDL_RENDER_TARGETS_RESET == event.type) {
             // This needs to be called before nuklear starts creating drawing commands
             gridTexture = createGridTexture(renderer, coordinates);
+            forceFullRedraw = true;
             gui.onSdlContextLost();
         }
 

@@ -16,15 +16,23 @@ enum CellState : uint8_t {
     ALIVE
 };
 
+struct Cell {
+    int x;
+    int y;
+    CellState state;
+};
+
 class Simulation
 {
 public:
+    using TChangeList = robin_hood::unordered_set<int>;
 
     explicit Simulation(Size size, const Pattern& pattern = {});
 
     [[nodiscard]] CellState get(int x, int y) const { return matrix[y * m_size.w + x]; }
     void set(int x, int y, CellState cellState);
     [[nodiscard]] Size size() const { return m_size; }
+    [[nodiscard]] std::shared_ptr<std::vector<Cell>> updatedCells() const { return lastUpdatedCells; }
 
     void nextStep();
 
@@ -35,11 +43,11 @@ public:
     ~Simulation() = default;
 
 private:
-    using TChangeList = robin_hood::unordered_set<int>;
     TChangeList changeList{};
     TChangeList changeList2{};
     TChangeList* writeChangeList = &changeList;
     TChangeList* readChangeList = &changeList2;
+    std::shared_ptr<std::vector<Cell>> lastUpdatedCells;
 
     Size m_size;
 
