@@ -46,36 +46,47 @@ build_script:
       &&
       pwd && ls -l && ls -l output/*
 
-artifacts:
-  - path: build
-    name: $(APP_NAME)
-
 for:
-  - # For AppVeyor's cache support on MacOS
+  - ######################## (MacOS)
     matrix:
       only:
         - APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
 
     init:
+      # For AppVeyor's cache support
       - HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install p7zip
+      -
+    artifacts:
+      - path: build
+        name: $(APP_NAME)
 
-  - # Static analysers
+  - ######################## (Clang)
     matrix:
       only:
         - job_name: Linux-Clang
 
     install:
+      # Static analysers
       - sh: sudo apt-get update && sudo apt-get install -y g++-10 g++-9 clang-tidy-10 cppcheck
 
-  - # G++ update
+    artifacts:
+      - path: build
+        name: $(APP_NAME)
+
+  - ######################## (G++)
     matrix:
       only:
         - job_name: Linux-GCC
 
     install:
+      # update because default is too old
       - sh: sudo apt-get update && sudo apt-get install -y g++-10 g++-9
 
-  - # Windows build
+    artifacts:
+      - path: build
+        name: $(APP_NAME)
+
+  - ######################## (Windows)
     matrix:
       only:
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019

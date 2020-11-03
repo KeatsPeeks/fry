@@ -109,7 +109,10 @@ if(MSVC)
     # /OPT:Ref: always eliminates functions and data that are never referenced, even with debug info
     # /ENTRY:mainCRTStartup: required for /subsystem:windows
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ignore:4099 -ignore:4075 /OPT:Ref /LTCG")
-
+else()
+    SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    SET(BUILD_SHARED_LIBS OFF)
+    SET(CMAKE_EXE_LINKER_FLAGS "-static")
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY output)
