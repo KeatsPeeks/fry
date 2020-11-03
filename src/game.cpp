@@ -253,6 +253,7 @@ void Game::mouseEdit(CellState cellState) {
     if (paused) {
         const Point point = coordinates.windowToSim(mouse);
         simulation->set(point.x, point.y, cellState);
+        forceFullRedraw = true;
     }
 }
 
