@@ -47,7 +47,7 @@ build_script:
       pwd && ls -l && ls -l output/*
 
 artifacts:
-  - path: build/output/*
+  - path: build/*.zip
     name: $(APP_NAME)
 
 for:
@@ -92,11 +92,16 @@ for:
 
           cmake --build . --config "RelWithDebInfo"
 
-          del output\RelWithDebInfo\*.ilk
+          move output\RelWithDebInfo\*.pdb .\
+
+          move output\RelWithDebInfo\*.* output\
 
     artifacts:
-      - path: build\output\RelWithDebInfo\*.*
+      - path: build\*.pdb
+        name: windows_x64_pdb
+      - path: build\output
         name: windows_x64
+        type: zip
 
 after_build:
   - git config --global credential.helper store
