@@ -7,8 +7,8 @@ set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON")
 #--------------------------------------------------------
 include("deps/HunterGate.cmake")
 HunterGate(
-    URL "https://github.com/cpp-pm/hunter/archive/v0.23.254.tar.gz"
-    SHA1 "017e688b9848c1f695303e8cfe9f35d40e154112"
+    URL "https://github.com/cpp-pm/hunter/archive/v0.23.321.tar.gz"
+    SHA1 "5e53cbb0429037ea8e2592bfd92704b8ff3ab492"
 )
 
 project(fry)
@@ -112,7 +112,7 @@ if(MSVC)
 else()
     SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
     SET(BUILD_SHARED_LIBS OFF)
-    SET(CMAKE_EXE_LINKER_FLAGS "-static")
+    #SET(CMAKE_EXE_LINKER_FLAGS "-static")
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY output)
@@ -137,12 +137,6 @@ set(APP_FILES
         src/version.h
 )
 add_executable(${CMAKE_PROJECT_NAME} ${WIN32_EXE} ${SDL2_GFX_FILES} ${NUKLEAR_FILES} ${APP_FILES} ${WIN32_EXTRA_FILES})
-
-# use the non-debug versions for RelWithDebInfo and MinSizeRel build types
-set_target_properties(SDL2::SDL2 SDL2::SDL2main spdlog::spdlog fmt::fmt SDL_ttf::SDL_ttf ZLIB::zlib PNG::png BZip2::bz2 freetype::freetype PROPERTIES
-    MAP_IMPORTED_CONFIG_MINSIZEREL Release
-    MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
-)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} ${APP_LINKER_LIBS})
 

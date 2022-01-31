@@ -353,7 +353,7 @@ void NuklearSdl::render() {
             case NK_COMMAND_POLYGON_FILLED: {
                 const auto *p = static_cast<const struct nk_command_polygon_filled *>(cmd);
                 std::vector<Sint16> vertices(p->point_count * 2);
-                std::span points = {&p->points[0], p->point_count};
+                std::span points(&p->points[0], p->point_count);
                 for (uint16_t i = 0; i < p->point_count; i++) {
                     vertices[i] = points[i].x;
                     vertices[i + p->point_count] = points[i].y;
@@ -388,6 +388,7 @@ void NuklearSdl::render() {
         }
     }
     nk_clear(&context);
+    ::SDL_RenderSetClipRect(renderer, nullptr);
 }
 
 NuklearSdl::~NuklearSdl() {
